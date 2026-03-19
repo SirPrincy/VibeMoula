@@ -1,10 +1,13 @@
 import { apiClient } from './apiClient';
-import type { Wallet, Transaction, SavingsGoal, Debt, BaseEntity } from '../types';
+import type { 
+  Wallet, Transaction, SavingsGoal, Debt, 
+  CreateWalletInput, CreateTransactionInput, CreateSavingsGoalInput, CreateDebtInput 
+} from '../types';
 
 export const financeApi = {
   // Wallets
   getWallets: () => apiClient.get<Wallet[]>('/wallets'),
-  createWallet: (wallet: Omit<Wallet, keyof BaseEntity | 'initialBalance'> & { initialBalance?: number }) => 
+  createWallet: (wallet: CreateWalletInput) => 
     apiClient.post<Wallet>('/wallets', { 
       ...wallet, 
       id: crypto.randomUUID(),
@@ -15,7 +18,7 @@ export const financeApi = {
 
   // Transactions
   getTransactions: () => apiClient.get<Transaction[]>('/transactions'),
-  createTransaction: (transaction: Omit<Transaction, keyof BaseEntity | 'date'>) => 
+  createTransaction: (transaction: CreateTransactionInput) => 
     apiClient.post<Transaction>('/transactions', {
       ...transaction,
       id: crypto.randomUUID(),
@@ -28,7 +31,7 @@ export const financeApi = {
 
   // Savings
   getSavings: () => apiClient.get<SavingsGoal[]>('/savings'),
-  createSavings: (goal: Omit<SavingsGoal, keyof BaseEntity>) => 
+  createSavings: (goal: CreateSavingsGoalInput) => 
     apiClient.post<SavingsGoal>('/savings', { 
       ...goal, 
       id: crypto.randomUUID(),
@@ -46,7 +49,7 @@ export const financeApi = {
     const data = await apiClient.get<Debt[]>('/debts');
     return data.map(d => ({ ...d, isPaid: !!d.isPaid }));
   },
-  createDebt: (debt: Omit<Debt, keyof BaseEntity>) => 
+  createDebt: (debt: CreateDebtInput) => 
     apiClient.post<Debt>('/debts', { 
       ...debt, 
       id: crypto.randomUUID(),

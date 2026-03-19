@@ -18,6 +18,8 @@ export interface Wallet extends BaseEntity {
   initialBalance: number;
 }
 
+export type CreateWalletInput = Omit<Wallet, keyof BaseEntity | 'initialBalance'> & { initialBalance?: number };
+
 export interface Transaction extends BaseEntity {
   description: string;
   amount: number;
@@ -29,6 +31,8 @@ export interface Transaction extends BaseEntity {
   fromWalletId?: string; // For transfers
   date: string;
 }
+
+export type CreateTransactionInput = Omit<Transaction, keyof BaseEntity | 'date'>;
 
 export interface FinanceState {
   transactions: Transaction[];
@@ -45,6 +49,8 @@ export interface SavingsGoal extends BaseEntity {
   deadline?: string;
 }
 
+export type CreateSavingsGoalInput = Omit<SavingsGoal, keyof BaseEntity>;
+
 export interface Debt extends BaseEntity {
   title: string;
   amount: number;
@@ -53,3 +59,5 @@ export interface Debt extends BaseEntity {
   dueDate?: string;
   isPaid: boolean;
 }
+
+export type CreateDebtInput = Omit<Debt, keyof BaseEntity>;

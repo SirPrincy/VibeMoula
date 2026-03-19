@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as schema from '../db/schema.ts';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { validate } from './middleware/validate.ts';

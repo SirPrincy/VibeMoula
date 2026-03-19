@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Plus, X, Landmark } from 'lucide-react';
 import TransactionList from './TransactionList';
-import type { Wallet, Transaction } from '../types';
+import type { Wallet, Transaction, CreateWalletInput } from '../types';
 import { SUPPORTED_CURRENCIES } from '../types';
 import { formatCurrency } from '../utils/format';
 
 interface Props {
   transactions: Transaction[];
   wallets: Wallet[];
-  onAddWallet: (wallet: Omit<Wallet, 'id'>) => void;
+  onAddWallet: (wallet: CreateWalletInput) => void;
   onExport: () => void;
   dashboardCurrency: string;
 }

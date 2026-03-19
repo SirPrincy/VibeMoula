@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeApi } from '../../api/financeApi';
-import type { Wallet, Transaction, SavingsGoal, Debt, BaseEntity } from '../../types';
+import type { Wallet, Transaction, SavingsGoal, Debt } from '../../types';
 
 export const useWallets = () => {
   const queryClient = useQueryClient();

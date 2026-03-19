@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Category, TransactionType, Wallet } from '../types';
+import type { Category, TransactionType, Wallet, CreateTransactionInput } from '../types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { 
-    description: string; 
-    amount: number; 
-    category: Category; 
-    subCategory: string;
-    tags: string[];
-    type: TransactionType; 
-    walletId: string 
-  }) => void;
+  onSubmit: (data: CreateTransactionInput) => void;
   wallets: Wallet[];
 }
 
