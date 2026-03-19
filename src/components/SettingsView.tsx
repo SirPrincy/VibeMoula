@@ -114,7 +114,7 @@ const SettingsView: React.FC<Props> = ({
 
         {/* About */}
         <div className="p-5 text-center text-muted-foreground text-[0.8rem]">
-          <p className="m-0 mb-1 font-bold">VibeMoula V4.0</p>
+          <p className="m-0 mb-1 font-bold">Moula Flow V0.01</p>
           <p className="m-0 italic">Fait avec ❤️ pour sirprincy</p>
         </div>
       </div>

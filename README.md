@@ -1,6 +1,6 @@
-# 💎 VibeMoula V4.0
+# 💎 Moula Flow V0.01
 
-**VibeMoula** est une application de gestion financière personnelle ultra-minimaliste, esthétique et performante. Conçue avec une approche "Soft Editorial", elle offre une expérience utilisateur premium inspirée du design d'Apple.
+**Moula Flow** est une application de gestion financière personnelle ultra-minimaliste, esthétique et performante. Conçue avec une approche "Soft Editorial", elle offre une expérience utilisateur premium inspirée du design d'Apple.
 
 ## 🚀 Fonctionnalités
 - **Dashboard Consolidé** : Vue unifiée de tous vos avoirs avec conversion automatique dans votre devise de dashboard.

@@ -69,7 +69,7 @@ function App() {
       
       <div className="container grow w-full max-w-[1200px] px-5 pt-10 pb-[140px] lg:ml-[270px] lg:px-20 lg:py-[60px] lg:max-w-none">
         <header className="mobile-header mobile-only mb-10 flex w-full items-center justify-between px-2.5 lg:hidden">
-          <h1 className="logo-title text-[1.4rem] font-extrabold tracking-[-0.5px]">VibeMoula</h1>
+          <h1 className="logo-title text-[1.4rem] font-extrabold tracking-[-0.5px]">Moula Flow</h1>
           <button 
             onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
             className={cn(

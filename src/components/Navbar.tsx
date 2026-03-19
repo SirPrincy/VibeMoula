@@ -58,7 +58,7 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
     <nav className="navbar-container fixed bottom-5 left-1/2 z-50 w-[calc(100%-30px)] max-w-[440px] -translate-x-1/2 rounded-[100px] border border-border bg-card/15 p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:left-[30px] lg:top-[30px] lg:bottom-[30px] lg:w-[240px] lg:max-w-[240px] lg:translate-x-0 lg:rounded-3xl lg:px-[15px] lg:py-10">
       <div className="navbar-content w-full">
         <div className="nav-logo desktop-only hidden lg:mb-10 lg:flex lg:pl-5">
-          <span className="logo-text text-2xl font-black tracking-[-1px] text-foreground">VibeMoula</span>
+          <span className="logo-text text-2xl font-black tracking-[-1px] text-foreground">Moula Flow</span>
         </div>
         
         <div className="tabs-wrapper w-full">

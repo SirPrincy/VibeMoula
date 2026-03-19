@@ -1,6 +1,6 @@
-# IA.md - VibeMoula Project Context
+# IA.md - Moula Flow Project Context
 
-Ce document permet à une autre IA de comprendre l'état actuel et la philosophie de **VibeMoula**.
+Ce document permet à une autre IA de comprendre l'état actuel et la philosophie de **Moula Flow**.
 
 ## Vision du Produit
 Une application de gestion financière ultra-minimaliste, esthétique et performante.
