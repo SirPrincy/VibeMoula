@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { AppError } from './error';
 
-export const checkApiKey = (req: Request, res: Response, next: NextFunction) => {
+export const checkApiKey = (req: Request, _res: Response, next: NextFunction) => {
   const adminKey = process.env.VIBEMOULA_ADMIN_KEY || 'debug_key_123';
   const providedKey = req.headers['x-admin-key'];
 

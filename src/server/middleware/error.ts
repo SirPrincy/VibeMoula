@@ -1,13 +1,18 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 export class AppError extends Error {
-  constructor(public message: string, public statusCode: number = 500, public details?: any) {
+  public statusCode: number;
+  public details?: any;
+
+  constructor(message: string, statusCode: number = 500, details?: any) {
     super(message);
     this.name = 'AppError';
+    this.statusCode = statusCode;
+    this.details = details;
   }
 }
 
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
   const statusCode = err.statusCode || 500;
   const isDev = process.env.NODE_ENV === 'development';
 

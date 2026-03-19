@@ -6,7 +6,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as schema from '../db/schema.ts';
 import { eq, desc } from 'drizzle-orm';
 import helmet from 'helmet';
-// import { rateLimit } from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import { validate } from './middleware/validate.ts';
 import { checkApiKey } from './middleware/auth.ts';
 import { errorHandler } from './middleware/error.ts';
@@ -24,7 +24,6 @@ app.use(cors({
 }));
 
 // Rate Limiting
-/*
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
@@ -33,7 +32,6 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api/', limiter);
-*/
 
 app.use(express.json());
 
@@ -46,7 +44,7 @@ migrate(db, { migrationsFolder: './drizzle' });
 console.log('Migrations applied successfully');
 
 // Routes API Wallets
-app.get('/api/wallets', async (req: Request, res: Response) => {
+app.get('/api/wallets', async (_req: Request, res: Response) => {
   try {
     const allWallets = await db.select().from(schema.wallets);
     res.json(allWallets);
@@ -68,7 +66,7 @@ app.post('/api/wallets', validate(schemas.WalletSchema), async (req: Request, re
 });
 
 // Routes API Transactions
-app.get('/api/transactions', async (req: Request, res: Response) => {
+app.get('/api/transactions', async (_req: Request, res: Response) => {
   try {
     const transactions = await db.select()
       .from(schema.transactions)
@@ -117,7 +115,7 @@ app.delete('/api/transactions/:id', async (req: Request, res: Response) => {
   }
 });
 
-app.delete('/api/transactions', async (req: Request, res: Response) => {
+app.delete('/api/transactions', async (_req: Request, res: Response) => {
   try {
     await db.delete(schema.transactions);
     res.status(204).end();
@@ -128,7 +126,7 @@ app.delete('/api/transactions', async (req: Request, res: Response) => {
 });
 
 // Routes API Savings
-app.get('/api/savings', async (req: Request, res: Response) => {
+app.get('/api/savings', async (_req: Request, res: Response) => {
   try {
     const allSavings = await db.select().from(schema.savings);
     res.json(allSavings);
@@ -178,7 +176,7 @@ app.delete('/api/savings/:id', async (req: Request, res: Response) => {
 });
 
 // Routes API Debts
-app.get('/api/debts', async (req: Request, res: Response) => {
+app.get('/api/debts', async (_req: Request, res: Response) => {
   try {
     const allDebts = await db.select().from(schema.debts);
     res.json(allDebts);
@@ -229,7 +227,7 @@ app.delete('/api/debts/:id', async (req: Request, res: Response) => {
   }
 });
 
-app.delete('/api/reset', checkApiKey, async (req: Request, res: Response) => {
+app.delete('/api/reset', checkApiKey, async (_req: Request, res: Response) => {
   await db.delete(schema.transactions);
   await db.delete(schema.wallets);
   await db.delete(schema.savings);
