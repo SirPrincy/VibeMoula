@@ -126,7 +126,7 @@ const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets 
                     required
                     value={walletId}
                     onChange={(e) => setWalletId(e.target.value)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none', colorScheme: 'dark' }}
+                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
                   >
                     {wallets.length > 0 ? (
                       wallets.map(w => (
@@ -148,7 +148,7 @@ const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets 
                     required
                     value={category}
                     onChange={(e) => handleCategoryChange(e.target.value as Category)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none', colorScheme: 'dark' }}
+                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
                   >
                     <option value="food" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🍴 Alimentation</option>
                     <option value="shopping" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🛍️ Shopping</option>
@@ -167,7 +167,7 @@ const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets 
                     required
                     value={subCategory}
                     onChange={(e) => setSubCategory(e.target.value)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none', colorScheme: 'dark' }}
+                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
                   >
                     {SUB_CATEGORIES[category].map(sub => (
                       <option key={sub} value={sub} style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>{sub}</option>
@@ -185,7 +185,7 @@ const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets 
                     required
                     value={type}
                     onChange={(e) => setType(e.target.value as TransactionType)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none', colorScheme: 'dark' }}
+                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
                   >
                     <option value="expense" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>Sortie (-)</option>
                     <option value="income" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>Entrée (+)</option>

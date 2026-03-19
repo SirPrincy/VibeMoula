@@ -92,7 +92,7 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
           border: 1px solid var(--border);
           border-radius: 100px;
           padding: 6px;
-          box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.08);
           backdrop-filter: blur(15px);
         }
 

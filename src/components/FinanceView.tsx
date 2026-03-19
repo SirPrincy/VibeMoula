@@ -71,7 +71,7 @@ const FinanceView: React.FC<Props> = ({ transactions, wallets, onAddWallet, onEx
         }}>
           {/* Global Balance Card (Highlight) */}
           <div style={{ 
-            background: 'linear-gradient(135deg, var(--accent) 0%, #333 100%)', 
+            background: 'linear-gradient(135deg, var(--accent) 0%, var(--fg) 100%)', 
             padding: '25px', 
             borderRadius: 'var(--radius-lg)', 
             color: 'var(--bg)',
