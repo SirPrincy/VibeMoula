@@ -25,6 +25,7 @@ function App() {
     addTransaction, 
     updateTransaction,
     addWallet,
+    updateWallet,
     addCategory,
     addBudget,
     exportData,
@@ -120,6 +121,8 @@ function App() {
                 onAddBudget={addBudget}
                 onExport={exportData}
                 dashboardCurrency={dashboardCurrency as Currency}
+                onEditTransaction={handleOpenTransactionModal}
+                onEditWallet={updateWallet}
               />
             )}
 

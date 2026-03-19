@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Download, X } from 'lucide-react';
+import { Plus, Download, X, Settings } from 'lucide-react';
 import TransactionList from './TransactionList';
 import type { Wallet, Transaction, Category, Budget, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../types';
@@ -119,9 +119,6 @@ const FinanceView: React.FC<Props> = ({
           <div className="flex justify-between items-end mb-4">
             <div>
               <h3 className="text-[1rem] font-bold">Mes Comptes</h3>
-              <p className="text-[1.2rem] font-black text-accent mt-1">
-                Solde Total: {currencyService.format(totalBalance, dashboardCurrency)}
-              </p>
             </div>
             <button
               onClick={() => { setEditingWallet(null); setShowAddModal('wallet'); }}
@@ -131,6 +128,28 @@ const FinanceView: React.FC<Props> = ({
             </button>
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+            <motion.div
+              whileHover={{ y: -5 }}
+              onClick={() => setSelectedWallets([])}
+              className={cn(
+                "group relative overflow-hidden bg-accent text-background p-6 rounded-[24px] border shadow-xl backdrop-blur-sm transition-all hover:shadow-2xl cursor-pointer",
+                selectedWallets.length === 0 ? "ring-2 ring-background/40" : ""
+              )}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background/20 text-2xl">
+                    🌍
+                  </div>
+                  <span className="font-bold text-[1rem] tracking-tight">Solde Total</span>
+                </div>
+              </div>
+              <div className="font-black text-[1.8rem] tracking-tighter">
+                {currencyService.format(totalBalance, dashboardCurrency)}
+              </div>
+              <div className="absolute top-0 right-0 h-24 w-24 translate-x-12 translate-y-[-12px] rounded-full bg-background/10 blur-3xl transition-opacity group-hover:opacity-100 pointer-events-none" />
+            </motion.div>
+
             {wallets.map(w => {
               const isSelected = selectedWallets.includes(w.id);
               return (
@@ -154,13 +173,13 @@ const FinanceView: React.FC<Props> = ({
                     onClick={(e) => { e.stopPropagation(); setEditingWallet(w); setShowAddModal('wallet'); }}
                     className="flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-accent rounded-full hover:bg-muted/50 transition-colors"
                   >
-                    ✏️
+                    <Settings size={16} />
                   </button>
                 </div>
                 <div className="font-black text-[1.8rem] tracking-tighter">
                   {currencyService.format((w.initialBalance || 0) + (walletBalances[w.id] || 0), w.currency as Currency)}
                 </div>
-                <div className="absolute top-0 right-0 h-24 w-24 translate-x-12 translate-y-[-12px] rounded-full bg-accent/5 blur-3xl transition-opacity group-hover:opacity-100" />
+                <div className="absolute top-0 right-0 h-24 w-24 translate-x-12 translate-y-[-12px] rounded-full bg-accent/5 blur-3xl transition-opacity group-hover:opacity-100 pointer-events-none" />
               </motion.div>
             )})}
           </div>
@@ -248,7 +267,7 @@ const FinanceView: React.FC<Props> = ({
         {showAddModal === 'wallet' && (
           <WalletModal 
             onClose={() => { setShowAddModal(null); setEditingWallet(null); }} 
-            onSubmit={(data: any) => editingWallet && onEditWallet ? onEditWallet({ ...data, id: editingWallet.id } as Wallet) : onAddWallet(data)}
+            onSubmit={(data: any) => editingWallet && onEditWallet ? onEditWallet({ ...editingWallet, ...data } as Wallet) : onAddWallet(data)}
             initialData={editingWallet}
           />
         )}
