@@ -3,7 +3,7 @@ import cors from 'cors';
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import * as schema from './src/db/schema.ts';
+import * as schema from '../db/schema.ts';
 import { eq, desc } from 'drizzle-orm';
 
 const app = express();
@@ -18,7 +18,9 @@ const db = drizzle(sqlite, { schema });
 
 // Appliquer les migrations au démarrage
 migrate(db, { migrationsFolder: './drizzle' });
-console.log('Migrations applied successfully');// Routes API Wallets
+console.log('Migrations applied successfully');
+
+// Routes API Wallets
 app.get('/api/wallets', async (req: Request, res: Response) => {
   try {
     const allWallets = await db.select().from(schema.wallets);

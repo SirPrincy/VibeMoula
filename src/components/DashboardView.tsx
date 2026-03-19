@@ -1,18 +1,29 @@
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { PieChart } from 'lucide-react';
+import { PieChart as PieChartIcon } from 'lucide-react';
 import TrendChart from './TrendChart';
+import type { Transaction } from '../types';
 import { formatCurrency } from '../utils/format';
 
 interface Props {
   totalBalance: number;
   totalIncome: number;
   totalExpenses: number;
-  transactions: any[];
+  transactions: Transaction[];
   currency: string;
 }
 
 const DashboardView: React.FC<Props> = ({ totalBalance, totalIncome, totalExpenses, transactions, currency }) => {
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+
+  const categoryData = useMemo(() => {
+    const expenses = transactions.filter(t => t.type === 'expense');
+    const categories: Record<string, number> = {};
+    expenses.forEach(t => {
+      categories[t.category] = (categories[t.category] || 0) + t.amount;
+    });
+    return Object.entries(categories).map(([name, value]) => ({ name, value }));
+  }, [transactions]);
 
   return (
     <motion.div
@@ -73,7 +84,28 @@ const DashboardView: React.FC<Props> = ({ totalBalance, totalIncome, totalExpens
           gap: '20px'
         }}>
           <div style={{ background: 'var(--bg)', padding: '15px', borderRadius: '20px', color: 'var(--accent)' }}>
-            <PieChart size={30} />
+            <PieChartIcon size={30} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Répartition par Catégorie</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+              {categoryData.length > 0 ? categoryData.map((c, i) => (
+                <div key={c.name} style={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 700, 
+                  background: 'var(--bg)', 
+                  padding: '4px 8px', 
+                  borderRadius: '100px',
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: `hsl(${i * 137.5}, 70%, 50%)` }} />
+                  {c.name.toUpperCase()}
+                </div>
+              )) : <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Aucune donnée</span>}
+            </div>
           </div>
           <div>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Taux d'Épargne Global</span>

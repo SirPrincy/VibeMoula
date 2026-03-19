@@ -14,7 +14,7 @@ const TrendChart: React.FC<Props> = ({ data }) => {
     const margin = 2;
     
     // Calculate balances over time
-    let balances: number[] = [];
+    const balances: number[] = [];
     let current = 0;
     data.slice().reverse().forEach(val => {
       current += val;

@@ -19,7 +19,7 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
     { id: 'settings' as Tab, label: 'Réglages', icon: Settings },
   ];
 
-  const renderTab = (tab: { id: Tab, label: string, icon: any }) => {
+  const renderTab = (tab: { id: Tab, label: string, icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }) => {
     const Icon = tab.icon;
     const isActive = activeTab === tab.id;
     return (

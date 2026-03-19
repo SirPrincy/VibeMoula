@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"tsx server.ts\" \"vite\"",
-    "server": "tsx server.ts",
+    "dev": "concurrently \"tsx src/server/index.ts\" \"vite\"",
+    "server": "tsx src/server/index.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

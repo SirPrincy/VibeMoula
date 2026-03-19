@@ -41,7 +41,7 @@ export const useFinance = () => {
     queryFn: async () => {
       const res = await fetch(DEBTS_URL);
       const data = await res.json();
-      return data.map((d: any) => ({ ...d, isPaid: !!d.isPaid }));
+      return data.map((d: Debt) => ({ ...d, isPaid: !!d.isPaid }));
     },
   });
 
