@@ -8,9 +8,10 @@
 - **Transactions Récurrentes** : Automatisez votre routine financière (loyer, abonnements, salaire).
 - **Catégories Paramétrables** : Créez votre propre système d'organisation avec icônes personnalisées.
 - **Multi-Wallets** : Portefeuilles illimités avec devises indépendantes (FCFA, USD, EUR, etc.).
+- **Transferts Inter-Comptes** : Déplacez facilement vos fonds d'un portefeuille à un autre.
 - **Épargne & Dettes** : Suivi précis des objectifs d'épargne et des remboursements de dettes.
 - **Rapprochement** : Marquez vos transactions comme "vérifiées" pour une comptabilité sans faille.
-- **Local-First & Résilience** : Stockage IndexedDB ultra-rapide avec système d'import/export structuré.
+- **Architecture Moderne** : Backend Node.js/Express communicant avec une base de données SQLite.
 
 ## 🛠️ Stack Technique (Updated)
 - **Frontend** : React 19 + Vite + TypeScript.
@@ -19,7 +20,8 @@
 - **Forms & Validation** : **React Hook Form** + **Zod**.
 - **State Management** : **TanStack Query** (React Query).
 - **Icons** : Lucide React.
-- **Database** : Drizzle ORM + IndexedDB (Local-first).
+- **Backend API** : Node.js + Express.
+- **Database** : SQLite gérée avec Drizzle ORM.
 
 ## 🏗️ Refactoring Récent
 - **Migration Tailwind CSS** : Tous les styles inline et CSS legacy ont été remplacés par Tailwind pour une maintenance facilitée et une cohérence visuelle parfaite.

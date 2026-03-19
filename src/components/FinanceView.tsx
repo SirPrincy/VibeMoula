@@ -49,8 +49,14 @@ const FinanceView: React.FC<Props> = ({
   // Wallet logic
   const walletBalances = useMemo(() => {
     return transactions.reduce((acc, t) => {
-      const amount = (t.type === 'income' ? 1 : -1) * t.amount;
-      acc[t.walletId] = (acc[t.walletId] || 0) + amount;
+      if (t.isDeleted) return acc;
+      if (t.type === 'transfer') {
+        if (t.fromWalletId) acc[t.fromWalletId] = (acc[t.fromWalletId] || 0) - t.amount;
+        acc[t.walletId] = (acc[t.walletId] || 0) + t.amount;
+      } else {
+        const amount = (t.type === 'income' ? 1 : -1) * t.amount;
+        acc[t.walletId] = (acc[t.walletId] || 0) + amount;
+      }
       return acc;
     }, {} as Record<string, number>);
   }, [transactions]);

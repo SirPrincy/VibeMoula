@@ -31,6 +31,7 @@ export const transactionSchema = z.object({
     description: z.string().optional(),
     date: z.string().default(() => new Date().toISOString()),
     isReconciled: z.boolean().default(false),
+    fromWalletId: z.string().optional(),
 });
 
 export type TransactionFormData = z.infer<typeof transactionSchema>;

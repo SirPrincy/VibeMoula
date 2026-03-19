@@ -58,6 +58,13 @@ const TransactionModal: React.FC<Props> = ({
   const isReconciled = watch('isReconciled');
 
   React.useEffect(() => {
+    if (type === 'transfer') {
+      setValue('category', 'Transfert');
+      setValue('categoryId', undefined);
+    }
+  }, [type, setValue]);
+
+  React.useEffect(() => {
     if (isOpen) {
       if (initialData) {
         reset({
@@ -83,7 +90,9 @@ const TransactionModal: React.FC<Props> = ({
   const onFormSubmit = (data: TransactionFormData) => {
     // Merge category name if it was selected via ID
     let finalCategory = data.category;
-    if (data.categoryId) {
+    if (data.type === 'transfer') {
+      finalCategory = 'Transfert';
+    } else if (data.categoryId) {
       const catDef = getCategoryById(data.categoryId);
       if (catDef) finalCategory = catDef.name;
     }
@@ -91,6 +100,7 @@ const TransactionModal: React.FC<Props> = ({
     const submitData = {
       ...data,
       category: finalCategory,
+      categoryId: data.type === 'transfer' ? undefined : data.categoryId,
       amount: data.amount,
       description: data.description || '',
       tags: data.tags || [],
@@ -139,7 +149,7 @@ const TransactionModal: React.FC<Props> = ({
                 <div className="space-y-8">
                   {/* Type Switcher */}
                   <div className="flex gap-2 rounded-xl bg-white/5 p-1">
-                    {(['expense', 'income'] as const).map((t) => (
+                    {(['expense', 'income', 'transfer'] as const).map((t) => (
                       <button
                         key={t}
                         type="button"
@@ -147,11 +157,11 @@ const TransactionModal: React.FC<Props> = ({
                         className={cn(
                           "flex-1 rounded-lg py-2.5 text-sm font-bold transition-all duration-200",
                           type === t 
-                            ? (t === 'expense' ? "bg-red-500 text-white shadow-sm" : "bg-emerald-500 text-white shadow-sm")
+                            ? (t === 'expense' ? "bg-red-500 text-white shadow-sm" : t === 'income' ? "bg-emerald-500 text-white shadow-sm" : "bg-blue-500 text-white shadow-sm")
                             : "text-white/40 hover:bg-white/5 hover:text-white"
                         )}
                       >
-                        {t === 'expense' ? 'Dépense' : 'Revenu'}
+                        {t === 'expense' ? 'Dépense' : t === 'income' ? 'Revenu' : 'Transfert'}
                       </button>
                     ))}
                   </div>
@@ -167,7 +177,7 @@ const TransactionModal: React.FC<Props> = ({
                       autoFocus
                       className={cn(
                         "w-full bg-transparent text-center text-6xl font-black outline-none transition-colors",
-                        type === 'expense' ? "text-red-500" : "text-emerald-500"
+                        type === 'expense' ? "text-red-500" : type === 'income' ? "text-emerald-500" : "text-blue-500"
                       )}
                     />
                     {errors.amount && (
@@ -177,8 +187,23 @@ const TransactionModal: React.FC<Props> = ({
 
                   {/* Form Fields Grid */}
                   <div className="grid gap-8">
+                    {type === 'transfer' && (
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Depuis Portefeuille (Source)</Label>
+                        <select 
+                          {...register('fromWalletId')}
+                          className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white outline-none focus:border-white/20 focus:bg-white/10"
+                        >
+                          {wallets.map(w => <option key={w.id} value={w.id} className="bg-[#161618]">{w.icon} {w.name}</option>)}
+                        </select>
+                        {errors.fromWalletId && <p className="text-[10px] font-bold text-red-500">{errors.fromWalletId.message as string}</p>}
+                      </div>
+                    )}
+
                     <div className="space-y-3">
-                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Portefeuille</Label>
+                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">
+                        {type === 'transfer' ? 'Vers Portefeuille (Destination)' : 'Portefeuille'}
+                      </Label>
                       <select 
                         {...register('walletId')}
                         className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white outline-none focus:border-white/20 focus:bg-white/10"
@@ -188,34 +213,36 @@ const TransactionModal: React.FC<Props> = ({
                       {errors.walletId && <p className="text-[10px] font-bold text-red-500">{errors.walletId.message}</p>}
                     </div>
 
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Catégorie</Label>
-                      <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                        <DialogTrigger asChild>
-                          <button 
-                            type="button" 
-                            className="w-full text-left rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white outline-none focus:border-white/20 focus:bg-white/10"
-                          >
-                            {watch('categoryId') ? `${watch('category')} ${watch('subCategory') ? `> ${watch('subCategory')}` : ''}` : 'Sélectionner une catégorie'}
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[85vh] overflow-y-auto bg-[#161618] border-white/10 p-6 sm:max-w-[425px]">
-                          <DialogTitle className="text-white mb-4">Choisir une catégorie</DialogTitle>
-                          <CategoryGrid 
-                            type={type as any}
-                            selectedCategoryId={watch('categoryId')}
-                            selectedSubCategoryId={watch('subCategory')}
-                            recentlyUsedIds={recentlyUsedCategoryIds}
-                            onSelect={(cat, sub) => {
-                              setValue('categoryId', cat.id);
-                              setValue('category', cat.name);
-                              setValue('subCategory', sub?.name || '');
-                              setIsCategoryOpen(false);
-                            }}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                    {type !== 'transfer' && (
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Catégorie</Label>
+                        <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                          <DialogTrigger asChild>
+                            <button 
+                              type="button" 
+                              className="w-full text-left rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white outline-none focus:border-white/20 focus:bg-white/10"
+                            >
+                              {watch('categoryId') ? `${watch('category')} ${watch('subCategory') ? `> ${watch('subCategory')}` : ''}` : 'Sélectionner une catégorie'}
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-h-[85vh] overflow-y-auto bg-[#161618] border-white/10 p-6 sm:max-w-[425px]">
+                            <DialogTitle className="text-white mb-4">Choisir une catégorie</DialogTitle>
+                            <CategoryGrid 
+                              type={type as any}
+                              selectedCategoryId={watch('categoryId')}
+                              selectedSubCategoryId={watch('subCategory')}
+                              recentlyUsedIds={recentlyUsedCategoryIds}
+                              onSelect={(cat, sub) => {
+                                setValue('categoryId', cat.id);
+                                setValue('category', cat.name);
+                                setValue('subCategory', sub?.name || '');
+                                setIsCategoryOpen(false);
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Date & Heure</Label>
@@ -268,7 +295,7 @@ const TransactionModal: React.FC<Props> = ({
                     type="submit" 
                     className="h-16 w-full rounded-[24px] bg-white text-lg font-black text-black transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    {initialData ? 'Enregistrer les modifications' : 'Ajouter ma Vibe'}
+                    {initialData ? 'Enregistrer les modifications' : 'Confirmer la transaction'}
                   </Button>
                   {initialData && onDelete && (
                     <Button
