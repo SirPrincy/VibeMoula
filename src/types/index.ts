@@ -42,7 +42,7 @@ export interface Transaction extends BaseEntity {
   isReconciled: boolean;
 }
 
-export type CreateTransactionInput = Omit<Transaction, keyof BaseEntity | 'date' | 'isReconciled'>;
+export type CreateTransactionInput = Omit<Transaction, keyof BaseEntity>;
 
 export interface RecurringTemplate extends BaseEntity {
   description: string;

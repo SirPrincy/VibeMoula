@@ -46,7 +46,9 @@ const SavingsView: React.FC = () => {
         amount: Math.abs(amount),
         category: 'other',
         type: amount > 0 ? 'expense' : 'income', 
-        walletId: selectedWallets[id] || wallets[0]?.id || 'cash'
+        walletId: selectedWallets[id] || wallets[0]?.id || 'cash',
+        date: new Date().toISOString(),
+        isReconciled: false
       });
     }
     

@@ -1,31 +1,26 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import {
-  TrendingUp,
-  TrendingDown,
-  Wallet as WalletIcon,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Calendar
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Wallet as WalletIcon, 
+  ArrowUpRight, 
+  ArrowDownLeft
 } from 'lucide-react';
-import type { Transaction, Currency } from '../types';
+import type { Transaction, Wallet, Currency } from '../types';
 import { currencyService } from '../services/currencyService';
 
 interface DashboardViewProps {
-  totalBalance: number;
-  totalIncome: number;
-  totalExpenses: number;
   transactions: Transaction[];
+  wallets: Wallet[];
   currency: Currency;
-  wallets: any[]; // Added to calculate real total
 }
 
-const DashboardView: React.FC<DashboardViewProps> = ({
-  transactions,
-  currency,
-  wallets = []
+const DashboardView: React.FC<DashboardViewProps> = ({ 
+  transactions, 
+  wallets,
+  currency 
 }) => {
-  // Recalculate totals based on conversion to dashboard currency
   const totals = useMemo(() => {
     const balance = wallets.reduce((acc, w) => {
       const converted = currencyService.convert(w.initialBalance || 0, w.currency as Currency, currency);
@@ -35,7 +30,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     const income = transactions
       .filter(t => t.type === 'income' && !t.isDeleted)
       .reduce((acc, t) => {
-        // Find wallet for currency
         const wallet = wallets.find(w => w.id === t.walletId);
         const fromCurrency = wallet?.currency as Currency || currency;
         return acc + currencyService.convert(t.amount, fromCurrency, currency);
@@ -49,128 +43,139 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         return acc + currencyService.convert(Math.abs(t.amount), fromCurrency, currency);
       }, 0);
 
-    return { balance: balance + income - expenses, income, expenses };
+    return { 
+      balance: balance + income - expenses, 
+      income, 
+      expenses 
+    };
   }, [wallets, transactions, currency]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="dashboard"
     >
-      <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '30px' }}>Analyses</h2>
-      
-      <div style={{ display: 'grid', gap: '20px' }}>
-        <section 
-          className="dashboard-stack" 
-          style={{ 
-            background: 'var(--card-bg)', 
-            border: '1px solid var(--border)', 
-            borderRadius: 'var(--radius-lg)', 
-            padding: '10px', 
-            boxShadow: 'var(--shadow-subtle)'
-          }}
-        >
-          <div className="stat-block" style={{ padding: '20px', borderBottom: '1px solid var(--border)' }}>
-            <span className="label" style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'block' }}>
-              Solde Actuel
-            </span>
-            <p className="value" style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-1px', lineHeight: 1.1 }}>
-              {formatCurrency(totalBalance, currency)}
-            </p>
-            <TrendChart data={transactions.map(t => (t.type === 'income' ? 1 : -1) * t.amount)} />
+      <div className="stats-grid">
+        <div className="stat-card balance">
+          <div className="stat-label">
+            <WalletIcon size={16} /> Solde Total
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-            <div className="stat-block" style={{ borderRight: '1px solid var(--border)', padding: '15px 20px' }}>
-              <span className="label" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', display: 'block' }}>
-                Entrées
-              </span>
-              <p className="value" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--positive)' }}>
-                {formatCurrency(totalIncome, currency)}
-              </p>
-            </div>
-            <div className="stat-block" style={{ padding: '15px 20px' }}>
-              <span className="label" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', display: 'block' }}>
-                Sorties
-              </span>
-              <p className="value" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--negative)' }}>
-                {formatCurrency(totalExpenses, currency)}
-              </p>
-            </div>
+          <div className="stat-value">{currencyService.format(totals.balance, currency)}</div>
+          <div className="stat-meta">Vibe consolidée</div>
+        </div>
+        
+        <div className="stat-card income">
+          <div className="stat-label">
+            <TrendingUp size={16} /> Revenus
           </div>
-        </section>
-
-        <div style={{ 
-          background: 'var(--card-bg)', 
-          padding: '25px', 
-          borderRadius: 'var(--radius-lg)', 
-          border: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '20px'
-        }}>
-          <div style={{ background: 'var(--bg)', padding: '15px', borderRadius: '20px', color: 'var(--accent)' }}>
-            <PieChartIcon size={30} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Répartition par Catégorie</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
-              {categoryData.length > 0 ? categoryData.map((c, i) => (
-                <div key={c.name} style={{ 
-                  fontSize: '0.7rem', 
-                  fontWeight: 700, 
-                  background: 'var(--bg)', 
-                  padding: '4px 8px', 
-                  borderRadius: '100px',
-                  border: '1px solid var(--border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px'
-                }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: `hsl(${i * 137.5}, 70%, 50%)` }} />
-                  {c.name.toUpperCase()}
-                </div>
-              )) : <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Aucune donnée</span>}
-            </div>
-          </div>
-          <div>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Taux d'Épargne Global</span>
-            <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{savingsRate.toFixed(1)}%</p>
-          </div>
+          <div className="stat-value">{currencyService.format(totals.income, currency)}</div>
+          <div className="stat-meta">Ce mois-ci</div>
         </div>
 
-        <div style={{ 
-          background: 'var(--card-bg)', 
-          padding: '25px', 
-          borderRadius: 'var(--radius-lg)', 
-          border: '1px solid var(--border)'
-        }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '20px' }}>Comparaison</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div>
-              <div style={{ height: '8px', background: 'var(--bg)', borderRadius: '10px', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', height: '100%' }}>
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(totalIncome / ((totalIncome + totalExpenses) || 1)) * 100}%` }}
-                    style={{ height: '100%', background: 'var(--positive)' }} 
-                  />
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(totalExpenses / ((totalIncome + totalExpenses) || 1)) * 100}%` }}
-                    style={{ height: '100%', background: 'var(--negative)', opacity: 0.8 }} 
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '0.8rem', fontWeight: 700 }}>
-                 <span style={{ color: 'var(--positive)' }}>INCOME</span>
-                 <span style={{ color: 'var(--negative)' }}>EXPENSES</span>
-              </div>
-            </div>
+        <div className="stat-card expenses">
+          <div className="stat-label">
+            <TrendingDown size={16} /> Dépenses
           </div>
+          <div className="stat-value">{currencyService.format(totals.expenses, currency)}</div>
+          <div className="stat-meta">Ce mois-ci</div>
         </div>
       </div>
+
+      <div className="recent-transactions">
+        <div className="section-header">
+          <h2>Activités Récentes</h2>
+          <span className="badge">Dernières 5</span>
+        </div>
+        
+        <div className="transaction-list">
+          {transactions.filter(t => !t.isDeleted).slice(0, 5).map(t => {
+            const wallet = wallets.find(w => w.id === t.walletId);
+            const walletCurrency = wallet?.currency as Currency || currency;
+            
+            return (
+              <div key={t.id} className="transaction-item">
+                <div className={`icon-box ${t.type}`}>
+                  {t.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                </div>
+                <div className="details">
+                  <div className="desc">{t.description}</div>
+                  <div className="meta">
+                    {t.category} • {new Date(t.date).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+                <div className={`amount ${t.type}`}>
+                  {t.type === 'income' ? '+' : '-'} {currencyService.format(Math.abs(t.amount), walletCurrency)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <style>{`
+        .dashboard { padding: 10px 0; }
+        .stats-grid { 
+          display: grid; 
+          grid-template-columns: 1fr; 
+          gap: 20px; 
+          margin-bottom: 40px; 
+        }
+        @media (min-width: 640px) {
+          .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .stat-card {
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          padding: 24px;
+          border-radius: 20px;
+        }
+        .stat-label { 
+          display: flex; 
+          align-items: center; 
+          gap: 8px; 
+          font-size: 0.9rem; 
+          color: var(--fg-muted);
+          margin-bottom: 12px;
+        }
+        .stat-value { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+        .stat-meta { font-size: 0.8rem; color: var(--fg-muted); }
+        
+        .balance .stat-value { color: var(--accent); }
+        .income .stat-value { color: #10b981; }
+        .expenses .stat-value { color: #ef4444; }
+
+        .recent-transactions { margin-top: 40px; }
+        .section-header { 
+          display: flex; 
+          justify-content: space-between; 
+          align-items: center; 
+          margin-bottom: 24px; 
+        }
+        .transaction-list { display: flex; flex-direction: column; gap: 12px; }
+        .transaction-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px;
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+        }
+        .icon-box {
+          padding: 10px;
+          border-radius: 12px;
+          display: flex;
+        }
+        .icon-box.income { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .icon-box.expense { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        
+        .details { flex: 1; }
+        .desc { font-weight: 600; margin-bottom: 2px; }
+        .meta { font-size: 0.8rem; color: var(--fg-muted); }
+        .amount { font-weight: 700; font-size: 1.1rem; }
+      `}</style>
     </motion.div>
   );
 };

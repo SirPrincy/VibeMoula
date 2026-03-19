@@ -5,6 +5,7 @@ import { recurringService } from './services/recurringService';
 import TransactionModal from './components/TransactionModal';
 import Navbar from './components/Navbar';
 import type { Tab } from './components/Navbar';
+import type { Currency } from './types';
 import FinanceView from './components/FinanceView';
 import DebtView from './components/DebtView';
 import DashboardView from './components/DashboardView';
@@ -16,13 +17,14 @@ function App() {
   const { 
     transactions, 
     wallets,
+    categories,
+    budgets,
     dashboardCurrency,
     setDashboardCurrency,
-    totalBalance, 
-    totalIncome, 
-    totalExpenses, 
     addTransaction, 
     addWallet,
+    addCategory,
+    addBudget,
     exportData,
     resetData
   } = useFinance();
@@ -92,11 +94,9 @@ function App() {
             {activeTab === 'dashboard' && (
               <DashboardView 
                 key="dashboard" 
-                totalBalance={totalBalance} 
-                totalIncome={totalIncome} 
-                totalExpenses={totalExpenses} 
                 transactions={transactions}
-                currency={dashboardCurrency}
+                wallets={wallets}
+                currency={dashboardCurrency as Currency}
               />
             )}
 
@@ -105,9 +105,13 @@ function App() {
                 key="finance" 
                 transactions={transactions} 
                 wallets={wallets}
+                categories={categories}
+                budgets={budgets}
                 onAddWallet={addWallet}
+                onAddCategory={addCategory}
+                onAddBudget={addBudget}
                 onExport={exportData}
-                dashboardCurrency={dashboardCurrency}
+                dashboardCurrency={dashboardCurrency as Currency}
               />
             )}
 
@@ -125,7 +129,7 @@ function App() {
                 theme={theme}
                 onToggleTheme={toggleTheme}
                 onExport={exportData}
-                currency={dashboardCurrency}
+                currency={dashboardCurrency as Currency}
                 onCurrencyChange={setDashboardCurrency}
                 onResetData={resetData}
               />
@@ -138,6 +142,7 @@ function App() {
           onClose={() => setIsModalOpen(false)} 
           onSubmit={addTransaction} 
           wallets={wallets}
+          categories={categories}
         />
       </div>
 

@@ -1,5 +1,4 @@
 import { financeApi } from '../api/financeApi';
-import type { RecurringTemplate } from '../types';
 
 export const recurringService = {
   checkAndGenerate: async () => {

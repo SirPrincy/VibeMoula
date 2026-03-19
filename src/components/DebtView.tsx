@@ -62,7 +62,9 @@ const DebtView: React.FC = () => {
         amount: Math.abs(payment),
         category: 'other',
         type: 'expense',
-        walletId: selectedWallets[id] || wallets[0]?.id || 'cash'
+        walletId: selectedWallets[id] || wallets[0]?.id || 'cash',
+        date: new Date().toISOString(),
+        isReconciled: false
       });
     }
 

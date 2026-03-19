@@ -3,24 +3,28 @@
 **VibeMoula** est une application de gestion financière personnelle ultra-minimaliste, esthétique et performante. Conçue avec une approche "Soft Editorial", elle offre une expérience utilisateur premium inspirée du design d'Apple.
 
 ## 🚀 Fonctionnalités
-- **Dashboard Intelligent** : Solde actuel, entrées/sorties et graphiques de tendances.
-- **Multi-Wallets** : Créez vos propres portefeuilles (Cash, Banque, Mobile Banking, etc.) avec leurs propres devises.
-- **Gestion des Devises** : Support global pour USD ($), EUR (€), Ar, FCFA, etc., avec formatage automatique.
-- **Finance Pro** : Liste de transactions complète avec badges de wallets et catégories.
-- **Design Adaptatif** : Sidebar latérale sur Desktop et Navigation simplifiée avec bouton "+" central sur Mobile.
-- **Local-First** : Vos données sont stockées localement dans une base de données SQLite.
-- **Sécurisé** : Protection contre les attaques communes (Helmet), limitation du débit (Rate Limiting) et validation stricte (Zod).
+- **Dashboard Consolidé** : Vue unifiée de tous vos avoirs avec conversion automatique dans votre devise de dashboard.
+- **Budgets Mensuels** : Définissez des limites par catégorie et suivez votre progression en temps réel.
+- **Transactions Récurrentes** : Automatisez votre routine financière (loyer, abonnements, salaire).
+- **Catégories Paramétrables** : Créez votre propre système d'organisation avec icônes personnalisées.
+- **Multi-Wallets** : Portefeuilles illimités avec devises indépendantes (FCFA, USD, EUR, etc.).
+- **Rapprochement** : Marquez vos transactions comme "vérifiées" pour une comptabilité sans faille.
+- **Local-First & Résilience** : Stockage SQLite local avec système d'import/export structuré et versionné.
 
 ## 🛠️ Stack Technique
-- **Frontend** : React 18 + Vite + TypeScript.
-- **Styles** : Vanilla CSS + Framer Motion pour les animations.
-- **Backend** : Node.js + Express.
-- **Base de données** : SQLite (via `better-sqlite3`).
+- **Frontend** : React 18 + Vite + TypeScript + **TanStack Query**.
+- **Backend** : Node.js + Express + TypeScript.
+- **ORM** : **Drizzle ORM** pour un accès type-safe à la base de données.
+- **Base de données** : SQLite (`better-sqlite3`).
+- **Validation** : Zod (Schémas unifiés frontend/backend).
 
 ## 📦 Installation
 ```bash
 # Installer les dépendances
 npm install
+# Ou si vous préférez pnpm ou yarn :
+# pnpm install
+# yarn install
 
 # Lancer l'application (Frontend + Backend)
 npm run dev

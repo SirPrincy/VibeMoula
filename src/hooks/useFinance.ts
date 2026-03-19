@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { useWallets, useTransactions, useSavings, useDebts } from './queries/useFinanceQueries';
+import { 
+  useWallets, useTransactions, useSavings, useDebts, 
+  useCategories, useBudgets 
+} from './queries/useFinanceQueries';
 import { statisticsService } from '../services/statisticsService';
 import { persistenceService } from '../services/persistenceService';
 import { financeApi } from '../api/financeApi';
+import { importExportService } from '../services/importExportService';
 
 export const useFinance = () => {
   const queryClient = useQueryClient();
@@ -13,6 +17,8 @@ export const useFinance = () => {
   const { data: transactions = [], addTransaction, deleteTransaction } = useTransactions();
   const { data: savings = [], addSavings, updateSavings, deleteSavings } = useSavings();
   const { data: debts = [], addDebt, updateDebt, deleteDebt } = useDebts();
+  const { data: categories = [], addCategory } = useCategories();
+  const { data: budgets = [], addBudget } = useBudgets();
 
   // Local state for settings (moved partially to persistenceService)
   const [dashboardCurrency, setDashboardCurrency] = useState(persistenceService.getCurrency);
@@ -33,22 +39,13 @@ export const useFinance = () => {
     },
   });
 
-  const exportData = () => {
-    const data = { transactions, wallets, savings, debts };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "vibemoula_export.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  };
-
   return {
     transactions,
     wallets,
     savings,
     debts,
+    categories,
+    budgets,
     dashboardCurrency,
     setDashboardCurrency,
     totalIncome: stats.totalIncome,
@@ -57,13 +54,16 @@ export const useFinance = () => {
     addTransaction,
     deleteTransaction,
     addWallet,
+    addCategory,
+    addBudget,
     addSavingsGoal: addSavings,
     updateSavingsGoal: updateSavings,
     deleteSavingsGoal: deleteSavings,
     addDebt,
     updateDebt,
     deleteDebt,
-    exportData,
+    exportData: importExportService.exportData,
+    importData: importExportService.importData,
     resetData: () => {
       if (confirm('Êtes-vous sûr de vouloir supprimer TOUTES les données ? Cette action est irréversible.')) {
         resetDataMutation.mutate();

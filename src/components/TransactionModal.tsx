@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X, CheckCircle } from 'lucide-react';
 import type { Category, TransactionType, Wallet, CreateTransactionInput } from '../types';
 
 interface Props {
@@ -7,53 +8,47 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: CreateTransactionInput) => void;
   wallets: Wallet[];
+  categories: Category[];
 }
 
-const SUB_CATEGORIES: Record<Category, string[]> = {
-  food: ['Resto', 'Courses', 'Café', 'Snacks'],
-  shopping: ['Vêtements', 'Tech', 'Maison', 'Cadeaux'],
-  transport: ['Carburant', 'Bus/Métro', 'Taxi/Uber'],
-  home: ['Loyer', 'Électricité', 'Eau', 'Internet'],
-  salary: ['Salaire Principal', 'Bonus', 'Freelance'],
-  leisure: ['Cinéma', 'Sport', 'Voyage', 'Sorties'],
-  other: ['Divers']
-};
-
-const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets }) => {
+const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets, categories = [] }) => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<Category>('food');
-  const [subCategory, setSubCategory] = useState(SUB_CATEGORIES['food'][0]);
-  const [tags, setTags] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
-  const [walletId, setWalletId] = useState(wallets[0]?.id || '');
+  const [walletId, setWalletId] = useState('');
+  const [isReconciled, setIsReconciled] = useState(false);
 
-  // Mettre à jour le wallet par défaut quand les wallets sont chargés
-  React.useEffect(() => {
+  useEffect(() => {
     if (wallets.length > 0 && !walletId) {
       setWalletId(wallets[0].id);
     }
   }, [wallets, walletId]);
 
-  const handleCategoryChange = (cat: Category) => {
-    setCategory(cat);
-    setSubCategory(SUB_CATEGORIES[cat][0]);
-  };
+  useEffect(() => {
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories, categoryId]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       description,
       amount: parseFloat(amount),
-      category,
-      subCategory,
-      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+      categoryId,
+      category: categories.find(c => c.id === categoryId)?.name || 'Autre', // Legacy fallback
       type,
-      walletId
+      walletId,
+      isReconciled,
+      date: new Date().toISOString(),
+      tags: [],
     });
+    
+    // Reset
     setDescription('');
     setAmount('');
-    setTags('');
+    setIsReconciled(false);
     onClose();
   };
 
@@ -78,147 +73,115 @@ const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets 
           }}
         >
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 50, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
             style={{
               background: 'var(--card-bg)',
               width: '100%',
-              maxWidth: '500px',
-              padding: '40px',
-              borderRadius: 'var(--radius-lg)',
+              maxWidth: '450px',
+              padding: '30px',
+              borderRadius: '24px',
               border: '1px solid var(--border)',
-              boxShadow: 'var(--shadow-subtle)'
             }}
           >
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '25px', fontWeight: 800 }}>Nouvelle Transaction</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Nouvelle Vibe</h2>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}><X /></button>
+            </div>
+
             <form onSubmit={handleFormSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div className="form-group">
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                    Montant (FCFA) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
-                    required
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                    Wallet *
-                  </label>
-                  <select
-                    required
-                    value={walletId}
-                    onChange={(e) => setWalletId(e.target.value)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '25px', background: 'var(--bg)', padding: '4px', borderRadius: '12px' }}>
+                {(['expense', 'income'] as const).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setType(t)}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: type === t ? (t === 'expense' ? '#ef4444' : '#10b981') : 'transparent',
+                      color: type === t ? '#fff' : 'var(--muted)',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
                   >
-                    {wallets.length > 0 ? (
-                      wallets.map(w => (
-                        <option key={w.id} value={w.id} style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>{w.icon} {w.name} ({w.currency})</option>
-                      ))
-                    ) : (
-                      <option value="cash" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>💵 Cash (USD)</option>
-                    )}
-                  </select>
-                </div>
+                    {t === 'expense' ? 'Dépense' : 'Revenu'}
+                  </button>
+                ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div className="form-group">
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                    Catégorie *
-                  </label>
-                  <select
-                    required
-                    value={category}
-                    onChange={(e) => handleCategoryChange(e.target.value as Category)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
-                  >
-                    <option value="food" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🍴 Alimentation</option>
-                    <option value="shopping" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🛍️ Shopping</option>
-                    <option value="transport" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🚗 Transport</option>
-                    <option value="home" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🏠 Maison</option>
-                    <option value="salary" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>💰 Salaire</option>
-                    <option value="leisure" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>🎨 Loisirs</option>
-                    <option value="other" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>📦 Autre</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                    Sous-catégorie *
-                  </label>
-                  <select
-                    required
-                    value={subCategory}
-                    onChange={(e) => setSubCategory(e.target.value)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
-                  >
-                    {SUB_CATEGORIES[category].map(sub => (
-                      <option key={sub} value={sub} style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>{sub}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                    Type *
-                  </label>
-                  <select
-                    required
-                    value={type}
-                    onChange={(e) => setType(e.target.value as TransactionType)}
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
-                  >
-                    <option value="expense" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>Sortie (-)</option>
-                    <option value="income" style={{ background: 'var(--card-bg)', color: 'var(--fg)' }}>Entrée (+)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                    Tags (optionnel)
-                  </label>
-                  <input
-                    type="text"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    placeholder="ex: urgent, perso..."
-                    style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '30px' }}>
-                <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>
-                  Description (optionnel)
-                </label>
+              <div style={{ marginBottom: '20px' }}>
                 <input
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="ex: Café, Loyer..."
-                  style={{ width: '100%', padding: '16px 0', background: 'transparent', border: 'none', borderBottom: '2px solid var(--border)', color: 'var(--fg)', fontSize: '1.1rem', fontWeight: 600, outline: 'none' }}
+                  required
+                  autoFocus
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    fontSize: '3rem', 
+                    fontWeight: 800, 
+                    textAlign: 'center', 
+                    background: 'transparent', 
+                    border: 'none', 
+                    color: type === 'expense' ? '#ef4444' : '#10b981',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
-              <button type="submit" style={{ width: '100%', padding: '20px', background: 'var(--accent)', color: 'var(--bg)', border: 'none', borderRadius: 'var(--radius-md)', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-                Confirmer
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                style={{ width: '100%', background: 'none', border: 'none', marginTop: '15px', color: 'var(--muted)', cursor: 'pointer', fontWeight: 600 }}
+              <div style={{ display: 'grid', gap: '15px', marginBottom: '25px' }}>
+                <div>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>PORTREFEUILLE</label>
+                  <select value={walletId} onChange={e => setWalletId(e.target.value)} style={selectStyle}>
+                    {wallets.map(w => <option key={w.id} value={w.id}>{w.icon} {w.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>CATÉGORIE</label>
+                  <select value={categoryId} onChange={e => setCategoryId(e.target.value)} style={selectStyle}>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                    {categories.length === 0 && <option value="">Aucune catégorie</option>}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>DESCRIPTION</label>
+                  <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Café, Loyer, Bonus..." style={inputStyle} />
+                </div>
+              </div>
+
+              <div 
+                onClick={() => setIsReconciled(!isReconciled)}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  marginBottom: '25px', 
+                  cursor: 'pointer',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: isReconciled ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg)',
+                  border: isReconciled ? '1px solid #10b981' : '1px solid var(--border)',
+                  transition: 'all 0.2s'
+                }}
               >
-                Annuler
+                <CheckCircle size={20} color={isReconciled ? '#10b981' : 'var(--muted)'} />
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isReconciled ? '#10b981' : 'var(--fg)' }}>
+                  {isReconciled ? 'Transaction Rapprochée' : 'Marquer comme Rapprochée'}
+                </span>
+              </div>
+
+              <button type="submit" style={{ width: '100%', padding: '16px', borderRadius: '14px', background: 'var(--fg)', color: 'var(--bg)', border: 'none', fontWeight: 800, fontSize: '1rem', cursor: 'pointer' }}>
+                Ajouter la Transaction
               </button>
             </form>
           </motion.div>
@@ -227,5 +190,8 @@ const TransactionModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, wallets 
     </AnimatePresence>
   );
 };
+
+const inputStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--fg)', outline: 'none' };
+const selectStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--fg)', outline: 'none' };
 
 export default TransactionModal;
