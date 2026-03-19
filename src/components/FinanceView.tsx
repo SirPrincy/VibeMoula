@@ -19,6 +19,7 @@ interface Props {
   onExport: () => void;
   dashboardCurrency: Currency;
   onEditTransaction?: (tx: Transaction) => void;
+  onEditWallet?: (wallet: Wallet) => void;
 }
 
 const FinanceView: React.FC<Props> = ({
@@ -31,10 +32,13 @@ const FinanceView: React.FC<Props> = ({
   onAddBudget,
   onExport,
   dashboardCurrency,
-  onEditTransaction
+  onEditTransaction,
+  onEditWallet
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'wallets' | 'budgets' | 'categories'>('wallets');
   const [showAddModal, setShowAddModal] = useState<string | null>(null);
+  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const [selectedWallets, setSelectedWallets] = useState<string[]>([]);
 
   // Wallet logic
   const walletBalances = useMemo(() => {
@@ -54,6 +58,23 @@ const FinanceView: React.FC<Props> = ({
       return { ...budget, spent };
     });
   }, [budgets, transactions]);
+
+  const totalBalance = useMemo(() => {
+    return wallets.reduce((acc, w) => {
+      return acc + currencyService.convert((w.initialBalance || 0) + (walletBalances[w.id] || 0), w.currency as Currency, dashboardCurrency);
+    }, 0);
+  }, [wallets, walletBalances, dashboardCurrency]);
+
+  const toggleWalletSelection = (walletId: string) => {
+    setSelectedWallets(prev => 
+      prev.includes(walletId) ? prev.filter(id => id !== walletId) : [...prev, walletId]
+    );
+  };
+
+  const filteredTransactions = useMemo(() => {
+    if (selectedWallets.length === 0) return transactions;
+    return transactions.filter(t => selectedWallets.includes(t.walletId));
+  }, [transactions, selectedWallets]);
 
   return (
     <motion.div
@@ -95,34 +116,53 @@ const FinanceView: React.FC<Props> = ({
 
       {activeSubTab === 'wallets' && (
         <section className="mb-10">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[1rem] font-bold">Mes Comptes</h3>
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <h3 className="text-[1rem] font-bold">Mes Comptes</h3>
+              <p className="text-[1.2rem] font-black text-accent mt-1">
+                Solde Total: {currencyService.format(totalBalance, dashboardCurrency)}
+              </p>
+            </div>
             <button
-              onClick={() => setShowAddModal('wallet')}
+              onClick={() => { setEditingWallet(null); setShowAddModal('wallet'); }}
               className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
             >
               <Plus size={14} /> Nouveau
             </button>
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
-            {wallets.map(w => (
+            {wallets.map(w => {
+              const isSelected = selectedWallets.includes(w.id);
+              return (
               <motion.div
                 key={w.id}
                 whileHover={{ y: -5 }}
-                className="group relative overflow-hidden bg-card/40 p-6 rounded-[24px] border border-border shadow-subtle backdrop-blur-sm transition-all hover:border-accent/20 hover:shadow-xl"
+                onClick={() => toggleWalletSelection(w.id)}
+                className={cn(
+                  "group relative overflow-hidden bg-card/40 p-6 rounded-[24px] border shadow-subtle backdrop-blur-sm transition-all hover:border-accent/20 hover:shadow-xl cursor-pointer",
+                  isSelected ? "border-accent ring-2 ring-accent/20" : "border-border"
+                )}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/5 text-2xl transition-colors group-hover:bg-accent/10">
-                    {w.icon}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/5 text-2xl transition-colors group-hover:bg-accent/10">
+                      {w.icon}
+                    </div>
+                    <span className="font-bold text-[1rem] tracking-tight">{w.name}</span>
                   </div>
-                  <span className="font-bold text-[1rem] tracking-tight">{w.name}</span>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setEditingWallet(w); setShowAddModal('wallet'); }}
+                    className="flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-accent rounded-full hover:bg-muted/50 transition-colors"
+                  >
+                    ✏️
+                  </button>
                 </div>
                 <div className="font-black text-[1.8rem] tracking-tighter">
                   {currencyService.format((w.initialBalance || 0) + (walletBalances[w.id] || 0), w.currency as Currency)}
                 </div>
                 <div className="absolute top-0 right-0 h-24 w-24 translate-x-12 translate-y-[-12px] rounded-full bg-accent/5 blur-3xl transition-opacity group-hover:opacity-100" />
               </motion.div>
-            ))}
+            )})}
           </div>
         </section>
       )}
@@ -201,12 +241,16 @@ const FinanceView: React.FC<Props> = ({
         </section>
       )}
 
-      <TransactionList transactions={transactions} wallets={wallets} categories={categories} onEditTransaction={onEditTransaction} />
+      <TransactionList transactions={filteredTransactions} wallets={wallets} categories={categories} onEditTransaction={onEditTransaction} />
 
       {/* Modals */}
       <AnimatePresence>
         {showAddModal === 'wallet' && (
-          <WalletAddModal onClose={() => setShowAddModal(null)} onAdd={onAddWallet} />
+          <WalletModal 
+            onClose={() => { setShowAddModal(null); setEditingWallet(null); }} 
+            onSubmit={(data: any) => editingWallet && onEditWallet ? onEditWallet({ ...data, id: editingWallet.id } as Wallet) : onAddWallet(data)}
+            initialData={editingWallet}
+          />
         )}
         {showAddModal === 'category' && (
           <CategoryAddModal onClose={() => setShowAddModal(null)} onAdd={onAddCategory} />
@@ -220,15 +264,15 @@ const FinanceView: React.FC<Props> = ({
 };
 
 // Sub-components for Modals
-const WalletAddModal = ({ onClose, onAdd }: any) => {
-  const [name, setName] = useState('');
-  const [icon, setIcon] = useState('🏦');
-  const [curr, setCurr] = useState('USD');
-  const [initial, setInitial] = useState(0);
+const WalletModal = ({ onClose, onSubmit, initialData }: any) => {
+  const [name, setName] = useState(initialData?.name || '');
+  const [icon, setIcon] = useState(initialData?.icon || '🏦');
+  const [curr, setCurr] = useState(initialData?.currency || 'USD');
+  const [initial, setInitial] = useState(initialData?.initialBalance || 0);
 
   return (
-    <ModalWrapper title="Nouveau Portefeuille" onClose={onClose}>
-      <form onSubmit={(e) => { e.preventDefault(); onAdd({ name, icon, currency: curr, initialBalance: initial }); onClose(); }} className="space-y-4">
+    <ModalWrapper title={initialData ? "Modifier Portefeuille" : "Nouveau Portefeuille"} onClose={onClose}>
+      <form onSubmit={(e) => { e.preventDefault(); onSubmit({ name, icon, currency: curr, initialBalance: initial }); onClose(); }} className="space-y-4">
         <Input label="Nom" value={name} onChange={setName} />
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1.5">
@@ -258,7 +302,9 @@ const WalletAddModal = ({ onClose, onAdd }: any) => {
           <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Solde Initial</Label>
           <Input type="number" value={initial} onChange={(v: any) => setInitial(Number(v))} />
         </div>
-        <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">Créer</Button>
+        <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">
+          {initialData ? "Enregistrer" : "Créer"}
+        </Button>
       </form>
     </ModalWrapper>
   );

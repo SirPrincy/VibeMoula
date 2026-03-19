@@ -76,16 +76,42 @@ app.get('/api/wallets', async (_req: Request, res: Response) => {
 
 app.post('/api/wallets', validate(schemas.WalletSchema), async (req: Request, res: Response) => {
   const { id, name, icon, currency, initialBalance, updatedAt, isDeleted } = req.body;
-  await db.insert(schema.wallets).values({ 
-    id: id as string, 
-    name: name as string, 
-    icon: icon as string, 
-    currency: currency as string,
-    initialBalance: Number(initialBalance),
-    updatedAt: updatedAt as string,
-    isDeleted: !!isDeleted
-  });
-  res.status(201).json({ id, name, icon, currency, initialBalance, updatedAt, isDeleted });
+  try {
+    await db.insert(schema.wallets).values({ 
+      id: id as string, 
+      name: name as string, 
+      icon: icon as string, 
+      currency: currency as string,
+      initialBalance: Number(initialBalance),
+      updatedAt: updatedAt as string,
+      isDeleted: !!isDeleted
+    });
+    res.status(201).json({ id, name, icon, currency, initialBalance, updatedAt, isDeleted });
+  } catch (error) {
+    console.error('Error inserting wallet:', error);
+    res.status(500).json({ error: 'Database constraint failed' });
+  }
+});
+
+app.put('/api/wallets/:id', validate(schemas.WalletSchema), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const { name, icon, currency, initialBalance } = req.body;
+  try {
+    const updatedAt = new Date().toISOString();
+    await db.update(schema.wallets)
+      .set({ 
+        name: name as string, 
+        icon: icon as string, 
+        currency: currency as string, 
+        initialBalance: Number(initialBalance),
+        updatedAt
+      })
+      .where(eq(schema.wallets.id, id));
+    res.json({ id, name, icon, currency, initialBalance, updatedAt, isDeleted: false });
+  } catch (error) {
+    console.error('Error updating wallet:', error);
+    res.status(500).json({ error: 'Database constraint failed' });
+  }
 });
 
 // Routes API Categories
@@ -143,36 +169,9 @@ app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: R
   
   const transactionId = (id as string) || crypto.randomUUID();
   
-  await db.insert(schema.transactions).values({ 
-    id: transactionId, 
-    description: description as string, 
-    amount: Number(amount), 
-    categoryId: (categoryId as string) || null,
-    category: category as string, 
-    subCategory: (subCategory as string) || null, 
-    tags: tagsStr, 
-    type: type as "income" | "expense" | "transfer", 
-    walletId: walletId as string, 
-    fromWalletId: (fromWalletId as string) || null,
-    date: (date as string) || new Date().toISOString(),
-    isReconciled: !!isReconciled,
-    updatedAt: (updatedAt as string) || new Date().toISOString(),
-    isDeleted: !!isDeleted
-  });
-  
-  res.status(201).json({ ...req.body, id: transactionId });
-});
-
-app.put('/api/transactions/:id', validate(schemas.TransactionSchema), async (req: Request, res: Response) => {
-  const id = req.params.id as string;
-  const { 
-    description, amount, categoryId, category, subCategory, 
-    tags, type, walletId, fromWalletId, date, isReconciled, isDeleted 
-  } = req.body;
-  const tagsStr = tags ? JSON.stringify(tags) : null;
-  
-  await db.update(schema.transactions)
-    .set({ 
+  try {
+    await db.insert(schema.transactions).values({ 
+      id: transactionId, 
       description: description as string, 
       amount: Number(amount), 
       categoryId: (categoryId as string) || null,
@@ -184,12 +183,49 @@ app.put('/api/transactions/:id', validate(schemas.TransactionSchema), async (req
       fromWalletId: (fromWalletId as string) || null,
       date: (date as string) || new Date().toISOString(),
       isReconciled: !!isReconciled,
-      updatedAt: new Date().toISOString(),
+      updatedAt: (updatedAt as string) || new Date().toISOString(),
       isDeleted: !!isDeleted
-    })
-    .where(eq(schema.transactions.id, id));
+    });
+    
+    res.status(201).json({ ...req.body, id: transactionId });
+  } catch (error) {
+    console.error('Error inserting transaction:', error);
+    res.status(500).json({ error: 'Database constraint failed' });
+  }
+});
+
+app.put('/api/transactions/:id', validate(schemas.TransactionSchema), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const { 
+    description, amount, categoryId, category, subCategory, 
+    tags, type, walletId, fromWalletId, date, isReconciled, isDeleted 
+  } = req.body;
+  const tagsStr = tags ? JSON.stringify(tags) : null;
   
-  res.json({ ...req.body, id, updatedAt: new Date().toISOString() });
+  try {
+    await db.update(schema.transactions)
+      .set({ 
+        description: description as string, 
+        amount: Number(amount), 
+        categoryId: (categoryId as string) || null,
+        category: category as string, 
+        subCategory: (subCategory as string) || null, 
+        tags: tagsStr, 
+        type: type as "income" | "expense" | "transfer", 
+        walletId: walletId as string, 
+        fromWalletId: (fromWalletId as string) || null,
+        date: (date as string) || new Date().toISOString(),
+        isReconciled: !!isReconciled,
+        updatedAt: new Date().toISOString(),
+        isDeleted: !!isDeleted
+      })
+      .where(eq(schema.transactions.id, id));
+    
+    res.json({ ...req.body, id, updatedAt: new Date().toISOString() });
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    res.status(500).json({ error: 'Database constraint failed' });
+  }
 });
 
 app.delete('/api/transactions/:id', async (req: Request, res: Response) => {

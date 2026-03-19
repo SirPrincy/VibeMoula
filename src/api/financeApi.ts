@@ -17,6 +17,11 @@ export const financeApi = {
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),
+  updateWallet: (wallet: Wallet) =>
+    apiClient.put<Wallet>(`/wallets/${wallet.id}`, {
+      ...wallet,
+      updatedAt: new Date().toISOString(),
+    }),
 
   // Categories
   getCategories: () => apiClient.get<Category[]>('/categories'),

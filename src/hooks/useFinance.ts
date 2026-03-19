@@ -13,7 +13,7 @@ export const useFinance = () => {
   const queryClient = useQueryClient();
   
   // New granular hooks
-  const { data: wallets = [], addWallet } = useWallets();
+  const { data: wallets = [], addWallet, updateWallet } = useWallets();
   const { data: transactions = [], addTransaction, deleteTransaction, updateTransaction } = useTransactions();
   const { data: savings = [], addSavings, updateSavings, deleteSavings } = useSavings();
   const { data: debts = [], addDebt, updateDebt, deleteDebt } = useDebts();
@@ -55,6 +55,7 @@ export const useFinance = () => {
     updateTransaction,
     deleteTransaction,
     addWallet,
+    updateWallet,
     addCategory,
     addBudget,
     addSavingsGoal: addSavings,

@@ -39,12 +39,34 @@ export const useWallets = () => {
     },
   });
 
+  const updateWalletMutation = useMutation({
+    mutationFn: financeApi.updateWallet,
+    onMutate: async (updatedWallet) => {
+      await queryClient.cancelQueries({ queryKey: ['wallets'] });
+      const previousWallets = queryClient.getQueryData<Wallet[]>(['wallets']);
+      queryClient.setQueryData<Wallet[]>(['wallets'], (old = []) => 
+        old.map(w => w.id === updatedWallet.id ? { ...updatedWallet, updatedAt: new Date().toISOString() } : w)
+      );
+      return { previousWallets };
+    },
+    onError: (_err, _updatedWallet, context) => {
+      queryClient.setQueryData(['wallets'], context?.previousWallets);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+    },
+  });
+
   const addWallet = (data: CreateWalletInput) => {
     const id = crypto.randomUUID();
     addWalletMutation.mutate({ ...data, id });
   };
 
-  return { ...query, addWallet };
+  return { 
+    ...query, 
+    addWallet,
+    updateWallet: updateWalletMutation.mutate 
+  };
 };
 
 export const useCategories = () => {
