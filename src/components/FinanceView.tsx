@@ -1,14 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Plus, X } from 'lucide-react';
+import { Plus, Download, X } from 'lucide-react';
 import TransactionList from './TransactionList';
 import type { Wallet, Transaction, Category, Budget, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../types';
 import { currencyService } from '../services/currencyService';
-
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Download, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
