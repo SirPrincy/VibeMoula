@@ -1,43 +1,70 @@
 import { z } from 'zod';
 
-const BaseEntitySchema = z.object({
-  id: z.string().uuid(),
-  updatedAt: z.string().datetime(),
-  isDeleted: z.boolean().default(false),
+export const BaseEntitySchema = z.object({
+  id: z.string(),
+  updatedAt: z.string(),
+  isDeleted: z.boolean(),
+});
+
+export const CategorySchema = BaseEntitySchema.extend({
+  name: z.string(),
+  icon: z.string(),
+  color: z.string(),
+  type: z.enum(['income', 'expense']),
 });
 
 export const WalletSchema = BaseEntitySchema.extend({
-  name: z.string().min(1).max(50),
-  icon: z.string().min(1),
-  currency: z.string().min(1).max(10), // Increased to support FCFA, etc.
+  name: z.string(),
+  icon: z.string(),
+  currency: z.string(),
   initialBalance: z.number().default(0),
 });
 
 export const TransactionSchema = BaseEntitySchema.extend({
-  description: z.string().max(200).optional().nullable(),
-  amount: z.number().finite(),
+  description: z.string(),
+  amount: z.number(),
+  categoryId: z.string().optional(),
+  category: z.string(),
+  subCategory: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   type: z.enum(['income', 'expense', 'transfer']),
-  category: z.string().min(1),
-  subCategory: z.string().optional().nullable(),
-  tags: z.array(z.string()).optional().nullable(),
-  walletId: z.string().uuid(),
-  fromWalletId: z.string().uuid().optional().nullable(),
-  date: z.string().datetime(),
+  walletId: z.string(),
+  fromWalletId: z.string().optional(),
+  date: z.string(),
+  isReconciled: z.boolean().default(false),
+});
+
+export const RecurringTemplateSchema = BaseEntitySchema.extend({
+  description: z.string(),
+  amount: z.number(),
+  categoryId: z.string().optional(),
+  walletId: z.string(),
+  frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
+  startDate: z.string(),
+  nextRunDate: z.string(),
+  lastRunDate: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const BudgetSchema = BaseEntitySchema.extend({
+  categoryId: z.string(),
+  amount: z.number(),
+  period: z.literal('monthly'),
 });
 
 export const SavingsSchema = BaseEntitySchema.extend({
-  name: z.string().min(1).max(100),
-  target: z.number().positive(),
-  current: z.number().nonnegative(),
-  currency: z.string().min(1).max(10),
-  deadline: z.string().datetime().optional().nullable(),
+  name: z.string(),
+  target: z.number(),
+  current: z.number(),
+  currency: z.string(),
+  deadline: z.string().optional(),
 });
 
 export const DebtSchema = BaseEntitySchema.extend({
-  title: z.string().min(1).max(100),
-  amount: z.number().positive(),
-  remaining: z.number().nonnegative(),
-  currency: z.string().min(1).max(10),
-  dueDate: z.string().datetime().optional().nullable(),
+  title: z.string(),
+  amount: z.number(),
+  remaining: z.number(),
+  currency: z.string(),
+  dueDate: z.string().optional(),
   isPaid: z.boolean().default(false),
 });

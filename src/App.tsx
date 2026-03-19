@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useFinance } from './hooks/useFinance';
+import { recurringService } from './services/recurringService';
 import TransactionModal from './components/TransactionModal';
 import Navbar from './components/Navbar';
 import type { Tab } from './components/Navbar';
@@ -39,6 +40,11 @@ function App() {
     }
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    // Check and generate recurring transactions on load
+    recurringService.checkAndGenerate();
+  }, []);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 

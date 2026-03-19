@@ -1,29 +1,56 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { PieChart as PieChartIcon } from 'lucide-react';
-import TrendChart from './TrendChart';
-import type { Transaction } from '../types';
-import { formatCurrency } from '../utils/format';
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet as WalletIcon,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Calendar
+} from 'lucide-react';
+import type { Transaction, Currency } from '../types';
+import { currencyService } from '../services/currencyService';
 
-interface Props {
+interface DashboardViewProps {
   totalBalance: number;
   totalIncome: number;
   totalExpenses: number;
   transactions: Transaction[];
-  currency: string;
+  currency: Currency;
+  wallets: any[]; // Added to calculate real total
 }
 
-const DashboardView: React.FC<Props> = ({ totalBalance, totalIncome, totalExpenses, transactions, currency }) => {
-  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+const DashboardView: React.FC<DashboardViewProps> = ({
+  transactions,
+  currency,
+  wallets = []
+}) => {
+  // Recalculate totals based on conversion to dashboard currency
+  const totals = useMemo(() => {
+    const balance = wallets.reduce((acc, w) => {
+      const converted = currencyService.convert(w.initialBalance || 0, w.currency as Currency, currency);
+      return acc + converted;
+    }, 0);
 
-  const categoryData = useMemo(() => {
-    const expenses = transactions.filter(t => t.type === 'expense');
-    const categories: Record<string, number> = {};
-    expenses.forEach(t => {
-      categories[t.category] = (categories[t.category] || 0) + t.amount;
-    });
-    return Object.entries(categories).map(([name, value]) => ({ name, value }));
-  }, [transactions]);
+    const income = transactions
+      .filter(t => t.type === 'income' && !t.isDeleted)
+      .reduce((acc, t) => {
+        // Find wallet for currency
+        const wallet = wallets.find(w => w.id === t.walletId);
+        const fromCurrency = wallet?.currency as Currency || currency;
+        return acc + currencyService.convert(t.amount, fromCurrency, currency);
+      }, 0);
+
+    const expenses = transactions
+      .filter(t => t.type === 'expense' && !t.isDeleted)
+      .reduce((acc, t) => {
+        const wallet = wallets.find(w => w.id === t.walletId);
+        const fromCurrency = wallet?.currency as Currency || currency;
+        return acc + currencyService.convert(Math.abs(t.amount), fromCurrency, currency);
+      }, 0);
+
+    return { balance: balance + income - expenses, income, expenses };
+  }, [wallets, transactions, currency]);
 
   return (
     <motion.div

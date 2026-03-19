@@ -1,6 +1,5 @@
-export type Category = 'food' | 'shopping' | 'transport' | 'home' | 'salary' | 'leisure' | 'other';
-
 export type TransactionType = 'income' | 'expense' | 'transfer';
+export type CategoryType = 'income' | 'expense';
 
 export const SUPPORTED_CURRENCIES = ['FCFA', 'USD', 'EUR', 'Ar', 'CAD', 'CHF', 'GBP'] as const;
 export type Currency = typeof SUPPORTED_CURRENCIES[number];
@@ -10,6 +9,15 @@ export interface BaseEntity {
   updatedAt: string;
   isDeleted: boolean;
 }
+
+export interface Category extends BaseEntity {
+  name: string;
+  icon: string;
+  color: string;
+  type: CategoryType;
+}
+
+export type CreateCategoryInput = Omit<Category, keyof BaseEntity>;
 
 export interface Wallet extends BaseEntity {
   name: string;
@@ -23,16 +31,40 @@ export type CreateWalletInput = Omit<Wallet, keyof BaseEntity | 'initialBalance'
 export interface Transaction extends BaseEntity {
   description: string;
   amount: number;
-  category: Category;
+  categoryId?: string;
+  category: string; // Legacy
   subCategory?: string;
   tags?: string[];
   type: TransactionType;
   walletId: string;
   fromWalletId?: string; // For transfers
   date: string;
+  isReconciled: boolean;
 }
 
-export type CreateTransactionInput = Omit<Transaction, keyof BaseEntity | 'date'>;
+export type CreateTransactionInput = Omit<Transaction, keyof BaseEntity | 'date' | 'isReconciled'>;
+
+export interface RecurringTemplate extends BaseEntity {
+  description: string;
+  amount: number;
+  categoryId?: string;
+  walletId: string;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  startDate: string;
+  nextRunDate: string;
+  lastRunDate?: string;
+  isActive: boolean;
+}
+
+export type CreateRecurringTemplateInput = Omit<RecurringTemplate, keyof BaseEntity | 'nextRunDate' | 'isActive'>;
+
+export interface Budget extends BaseEntity {
+  categoryId: string;
+  amount: number;
+  period: 'monthly';
+}
+
+export type CreateBudgetInput = Omit<Budget, keyof BaseEntity>;
 
 export interface FinanceState {
   transactions: Transaction[];

@@ -1,7 +1,9 @@
 import { apiClient } from './apiClient';
 import type { 
   Wallet, Transaction, SavingsGoal, Debt, 
-  CreateWalletInput, CreateTransactionInput, CreateSavingsGoalInput, CreateDebtInput 
+  Category, RecurringTemplate, Budget,
+  CreateWalletInput, CreateTransactionInput, CreateSavingsGoalInput, CreateDebtInput,
+  CreateCategoryInput, CreateRecurringTemplateInput, CreateBudgetInput
 } from '../types';
 
 export const financeApi = {
@@ -16,6 +18,16 @@ export const financeApi = {
       isDeleted: false,
     }),
 
+  // Categories
+  getCategories: () => apiClient.get<Category[]>('/categories'),
+  createCategory: (category: CreateCategoryInput) =>
+    apiClient.post<Category>('/categories', {
+      ...category,
+      id: crypto.randomUUID(),
+      updatedAt: new Date().toISOString(),
+      isDeleted: false,
+    }),
+
   // Transactions
   getTransactions: () => apiClient.get<Transaction[]>('/transactions'),
   createTransaction: (transaction: CreateTransactionInput) => 
@@ -23,11 +35,39 @@ export const financeApi = {
       ...transaction,
       id: crypto.randomUUID(),
       date: new Date().toISOString(),
+      isReconciled: false,
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),
   deleteTransaction: (id: string) => apiClient.delete(`/transactions/${id}`),
   clearTransactions: () => apiClient.delete('/transactions'),
+
+  // Recurring
+  getRecurring: () => apiClient.get<RecurringTemplate[]>('/recurring'),
+  createRecurring: (template: CreateRecurringTemplateInput) =>
+    apiClient.post<RecurringTemplate>('/recurring', {
+      ...template,
+      id: crypto.randomUUID(),
+      nextRunDate: new Date().toISOString(), // Initial next run
+      isActive: true,
+      updatedAt: new Date().toISOString(),
+      isDeleted: false,
+    }),
+  updateRecurring: (template: RecurringTemplate) => 
+    apiClient.put<RecurringTemplate>(`/recurring/${template.id}`, {
+      ...template,
+      updatedAt: new Date().toISOString(),
+    }),
+
+  // Budgets
+  getBudgets: () => apiClient.get<Budget[]>('/budgets'),
+  createBudget: (budget: CreateBudgetInput) =>
+    apiClient.post<Budget>('/budgets', {
+      ...budget,
+      id: crypto.randomUUID(),
+      updatedAt: new Date().toISOString(),
+      isDeleted: false,
+    }),
 
   // Savings
   getSavings: () => apiClient.get<SavingsGoal[]>('/savings'),

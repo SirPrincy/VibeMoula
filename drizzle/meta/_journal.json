@@ -15,6 +15,13 @@
       "when": 1773928892818,
       "tag": "0001_lethal_fantastic_four",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773929236542,
+      "tag": "0002_faulty_joshua_kane",
+      "breakpoints": true
     }
   ]
 }

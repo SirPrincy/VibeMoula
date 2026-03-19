@@ -70,6 +70,33 @@ app.post('/api/wallets', validate(schemas.WalletSchema), async (req: Request, re
   res.status(201).json({ id, name, icon, currency, initialBalance, updatedAt, isDeleted });
 });
 
+// Routes API Categories
+app.get('/api/categories', async (_req: Request, res: Response) => {
+  try {
+    const allCategories = await db.select()
+      .from(schema.categories)
+      .where(eq(schema.categories.isDeleted, false));
+    res.json(allCategories);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+app.post('/api/categories', validate(schemas.CategorySchema), async (req: Request, res: Response) => {
+  const { id, name, icon, color, type, updatedAt, isDeleted } = req.body;
+  await db.insert(schema.categories).values({ 
+    id: id as string, 
+    name: name as string, 
+    icon: icon as string, 
+    color: color as string,
+    type: type as 'income' | 'expense',
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
+  });
+  res.status(201).json({ id, name, icon, color, type, updatedAt, isDeleted });
+});
+
 // Routes API Transactions
 app.get('/api/transactions', async (_req: Request, res: Response) => {
   try {
@@ -80,7 +107,7 @@ app.get('/api/transactions', async (_req: Request, res: Response) => {
       
     const formattedTransactions = transactions.map(t => ({
       ...t,
-      tags: t.tags ? JSON.parse(t.tags) : []
+      tags: t.tags ? JSON.parse(t.tags as string) : []
     }));
     res.json(formattedTransactions);
   } catch (error) {
@@ -90,27 +117,30 @@ app.get('/api/transactions', async (_req: Request, res: Response) => {
 });
 
 app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: Request, res: Response) => {
-  console.log('Incoming transaction request:', req.body);
-  const { id, description, amount, category, subCategory, tags, type, walletId, fromWalletId, date, updatedAt, isDeleted } = req.body;
+  const { 
+    id, description, amount, categoryId, category, subCategory, 
+    tags, type, walletId, fromWalletId, date, isReconciled, updatedAt, isDeleted 
+  } = req.body;
   const tagsStr = tags ? JSON.stringify(tags) : null;
   
   await db.insert(schema.transactions).values({ 
     id: id as string, 
-    description: description as string | null, 
+    description: description as string, 
     amount: Number(amount), 
+    categoryId: (categoryId as string) || null,
     category: category as string, 
-    subCategory: subCategory as string | null, 
+    subCategory: (subCategory as string) || null, 
     tags: tagsStr, 
     type: type as "income" | "expense" | "transfer", 
     walletId: walletId as string, 
     fromWalletId: (fromWalletId as string) || null,
     date: date as string,
+    isReconciled: !!isReconciled,
     updatedAt: updatedAt as string,
     isDeleted: !!isDeleted
   });
   
-  console.log('Transaction created successfully:', id);
-  res.status(201).json({ id, description, amount, category, subCategory, tags, type, walletId, fromWalletId, date, updatedAt, isDeleted });
+  res.status(201).json(req.body);
 });
 
 app.delete('/api/transactions/:id', async (req: Request, res: Response) => {
@@ -124,14 +154,59 @@ app.delete('/api/transactions/:id', async (req: Request, res: Response) => {
   }
 });
 
-app.delete('/api/transactions', async (_req: Request, res: Response) => {
+// Routes API Recurring
+app.get('/api/recurring', async (_req: Request, res: Response) => {
   try {
-    await db.delete(schema.transactions);
-    res.status(204).end();
+    const all = await db.select()
+      .from(schema.recurringTemplates)
+      .where(eq(schema.recurringTemplates.isDeleted, false));
+    res.json(all);
   } catch (error) {
-    console.error('Error clearing transactions:', error);
-    res.status(500).json({ error: 'Failed to clear transactions' });
+    res.status(500).json({ error: 'Failed to fetch recurring templates' });
   }
+});
+
+app.post('/api/recurring', validate(schemas.RecurringTemplateSchema), async (req: Request, res: Response) => {
+  const { id, description, amount, categoryId, walletId, frequency, startDate, nextRunDate, isActive, updatedAt, isDeleted } = req.body;
+  await db.insert(schema.recurringTemplates).values({
+    id: id as string,
+    description: description as string,
+    amount: Number(amount),
+    categoryId: (categoryId as string) || null,
+    walletId: walletId as string,
+    frequency: frequency as any,
+    startDate: startDate as string,
+    nextRunDate: nextRunDate as string,
+    isActive: !!isActive,
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
+  });
+  res.status(201).json(req.body);
+});
+
+// Routes API Budgets
+app.get('/api/budgets', async (_req: Request, res: Response) => {
+  try {
+    const all = await db.select()
+      .from(schema.budgets)
+      .where(eq(schema.budgets.isDeleted, false));
+    res.json(all);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch budgets' });
+  }
+});
+
+app.post('/api/budgets', validate(schemas.BudgetSchema), async (req: Request, res: Response) => {
+  const { id, categoryId, amount, period, updatedAt, isDeleted } = req.body;
+  await db.insert(schema.budgets).values({
+    id: id as string,
+    categoryId: categoryId as string,
+    amount: Number(amount),
+    period: period as any,
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
+  });
+  res.status(201).json(req.body);
 });
 
 // Routes API Savings
@@ -251,6 +326,9 @@ app.delete('/api/reset', checkApiKey, async (_req: Request, res: Response) => {
   await db.delete(schema.wallets);
   await db.delete(schema.savings);
   await db.delete(schema.debts);
+  await db.delete(schema.categories);
+  await db.delete(schema.recurringTemplates);
+  await db.delete(schema.budgets);
   res.status(204).end();
 });
 

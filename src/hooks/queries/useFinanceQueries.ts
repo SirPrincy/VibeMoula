@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeApi } from '../../api/financeApi';
-import type { Wallet, Transaction, SavingsGoal, Debt } from '../../types';
+import type { 
+  Wallet, Transaction, SavingsGoal, Debt, 
+  Category, RecurringTemplate, Budget 
+} from '../../types';
 
 export const useWallets = () => {
   const queryClient = useQueryClient();
@@ -37,6 +40,35 @@ export const useWallets = () => {
   return { ...query, addWallet: addWalletMutation.mutate };
 };
 
+export const useCategories = () => {
+  const queryClient = useQueryClient();
+  const query = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: financeApi.getCategories,
+  });
+
+  const addCategoryMutation = useMutation({
+    mutationFn: financeApi.createCategory,
+    onMutate: async (newCategory) => {
+      await queryClient.cancelQueries({ queryKey: ['categories'] });
+      const previous = queryClient.getQueryData<Category[]>(['categories']);
+      queryClient.setQueryData<Category[]>(['categories'], (old = []) => [
+        ...old,
+        { ...newCategory, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as Category,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _new, context) => {
+      queryClient.setQueryData(['categories'], context?.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+
+  return { ...query, addCategory: addCategoryMutation.mutate };
+};
+
 export const useTransactions = () => {
   const queryClient = useQueryClient();
   const query = useQuery<Transaction[]>({
@@ -54,6 +86,7 @@ export const useTransactions = () => {
           ...newTransaction, 
           id: crypto.randomUUID(), 
           date: new Date().toISOString(),
+          isReconciled: false,
           updatedAt: new Date().toISOString(),
           isDeleted: false 
         } as Transaction,
@@ -92,6 +125,71 @@ export const useTransactions = () => {
     addTransaction: addTransactionMutation.mutate,
     deleteTransaction: deleteTransactionMutation.mutate
   };
+};
+
+export const useRecurring = () => {
+  const queryClient = useQueryClient();
+  const query = useQuery<RecurringTemplate[]>({
+    queryKey: ['recurring'],
+    queryFn: financeApi.getRecurring,
+  });
+
+  const addRecurringMutation = useMutation({
+    mutationFn: financeApi.createRecurring,
+    onMutate: async (newTemplate) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring'] });
+      const previous = queryClient.getQueryData<RecurringTemplate[]>(['recurring']);
+      queryClient.setQueryData<RecurringTemplate[]>(['recurring'], (old = []) => [
+        ...old,
+        { 
+          ...newTemplate, 
+          id: crypto.randomUUID(), 
+          nextRunDate: new Date().toISOString(),
+          isActive: true,
+          updatedAt: new Date().toISOString(), 
+          isDeleted: false 
+        } as RecurringTemplate,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _new, context) => {
+      queryClient.setQueryData(['recurring'], context?.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring'] });
+    },
+  });
+
+  return { ...query, addRecurring: addRecurringMutation.mutate };
+};
+
+export const useBudgets = () => {
+  const queryClient = useQueryClient();
+  const query = useQuery<Budget[]>({
+    queryKey: ['budgets'],
+    queryFn: financeApi.getBudgets,
+  });
+
+  const addBudgetMutation = useMutation({
+    mutationFn: financeApi.createBudget,
+    onMutate: async (newBudget) => {
+      await queryClient.cancelQueries({ queryKey: ['budgets'] });
+      const previous = queryClient.getQueryData<Budget[]>(['budgets']);
+      queryClient.setQueryData<Budget[]>(['budgets'], (old = []) => [
+        ...old,
+        { ...newBudget, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as Budget,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _new, context) => {
+      queryClient.setQueryData(['budgets'], context?.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+  });
+
+  return { ...query, addBudget: addBudgetMutation.mutate };
 };
 
 export const useSavings = () => {
