@@ -20,20 +20,20 @@ interface Props {
   dashboardCurrency: Currency;
 }
 
-const FinanceView: React.FC<Props> = ({ 
-  transactions, 
-  wallets, 
+const FinanceView: React.FC<Props> = ({
+  transactions,
+  wallets,
   categories,
   budgets,
-  onAddWallet, 
+  onAddWallet,
   onAddCategory,
   onAddBudget,
-  onExport, 
-  dashboardCurrency 
+  onExport,
+  dashboardCurrency
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'wallets' | 'budgets' | 'categories'>('wallets');
   const [showAddModal, setShowAddModal] = useState<string | null>(null);
-  
+
   // Wallet logic
   const walletBalances = useMemo(() => {
     return transactions.reduce((acc, t) => {
@@ -61,8 +61,8 @@ const FinanceView: React.FC<Props> = ({
     >
       <div className="flex justify-between items-center mb-[30px]">
         <h2 className="text-[1.8rem] font-black">Finance</h2>
-        <button 
-          onClick={onExport} 
+        <button
+          onClick={onExport}
           className="flex items-center gap-1.5 bg-none border-none text-muted-foreground text-[0.8rem] font-bold cursor-pointer hover:text-foreground transition-colors"
         >
           <Download size={16} /> Export
@@ -76,15 +76,15 @@ const FinanceView: React.FC<Props> = ({
             key={tab}
             onClick={() => setActiveSubTab(tab)}
             className={cn(
-               "relative bg-none border-none font-bold text-[0.9rem] cursor-pointer capitalize transition-colors",
-               activeSubTab === tab ? "text-accent" : "text-muted-foreground hover:text-foreground"
+              "relative bg-none border-none font-bold text-[0.9rem] cursor-pointer capitalize transition-colors",
+              activeSubTab === tab ? "text-accent" : "text-muted-foreground hover:text-foreground"
             )}
           >
             {tab === 'wallets' ? 'Comptes' : tab}
             {activeSubTab === tab && (
-              <motion.div 
-                layoutId="subtab" 
-                className="absolute left-0 right-0 bottom-[-11px] h-[2px] bg-accent" 
+              <motion.div
+                layoutId="subtab"
+                className="absolute left-0 right-0 bottom-[-11px] h-[2px] bg-accent"
               />
             )}
           </button>
@@ -95,24 +95,31 @@ const FinanceView: React.FC<Props> = ({
         <section className="mb-10">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[1rem] font-bold">Mes Comptes</h3>
-            <button 
-              onClick={() => setShowAddModal('wallet')} 
+            <button
+              onClick={() => setShowAddModal('wallet')}
               className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
             >
               <Plus size={14} /> Nouveau
             </button>
           </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
             {wallets.map(w => (
-              <div key={w.id} className="bg-card p-5 rounded-[16px] border border-border transition-shadow hover:shadow-lg">
-                <div className="flex items-center gap-2.5 mb-2.5">
-                  <span className="text-[1.5rem]">{w.icon}</span>
-                  <span className="font-bold text-[0.9rem] text-muted-foreground">{w.name}</span>
+              <motion.div
+                key={w.id}
+                whileHover={{ y: -5 }}
+                className="group relative overflow-hidden bg-card/40 p-6 rounded-[24px] border border-border shadow-subtle backdrop-blur-sm transition-all hover:border-accent/20 hover:shadow-xl"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/5 text-2xl transition-colors group-hover:bg-accent/10">
+                    {w.icon}
+                  </div>
+                  <span className="font-bold text-[1rem] tracking-tight">{w.name}</span>
                 </div>
-                <div className="font-black text-[1.4rem]">
+                <div className="font-black text-[1.8rem] tracking-tighter">
                   {currencyService.format((w.initialBalance || 0) + (walletBalances[w.id] || 0), w.currency as Currency)}
                 </div>
-              </div>
+                <div className="absolute top-0 right-0 h-24 w-24 translate-x-12 translate-y-[-12px] rounded-full bg-accent/5 blur-3xl transition-opacity group-hover:opacity-100" />
+              </motion.div>
             ))}
           </div>
         </section>
@@ -122,39 +129,45 @@ const FinanceView: React.FC<Props> = ({
         <section className="mb-10">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[1rem] font-bold">Budgets Mensuels</h3>
-            <button 
-              onClick={() => setShowAddModal('budget')} 
+            <button
+              onClick={() => setShowAddModal('budget')}
               className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
             >
               <Plus size={14} /> Nouveau
             </button>
           </div>
-          <div className="grid gap-4">
+          <div className="grid gap-5">
             {budgetProgress.map(b => {
               const category = categories.find(c => c.id === b.categoryId);
               const percent = Math.min((b.spent / b.amount) * 100, 100);
               return (
-                <div key={b.id} className="bg-card p-5 rounded-[16px] border border-border">
-                  <div className="flex justify-between mb-2.5">
-                    <div className="flex items-center gap-2">
-                       <span className="text-[1.2rem]">{category?.icon || '📁'}</span>
-                       <span className="font-bold">{category?.name || 'Inconnu'}</span>
+                <div key={b.id} className="bg-card/40 p-6 rounded-[24px] border border-border backdrop-blur-sm shadow-subtle">
+                  <div className="flex justify-between items-end mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{category?.icon || '📁'}</span>
+                      <div>
+                        <span className="block font-black text-[1rem] tracking-tight">{category?.name || 'Inconnu'}</span>
+                        <span className="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest">Budget Mensuel</span>
+                      </div>
                     </div>
-                    <span className={cn(
-                      "font-bold",
-                      percent > 90 ? "text-red-500" : "text-foreground"
-                    )}>
-                      {currencyService.format(b.spent, dashboardCurrency)} / {currencyService.format(b.amount, dashboardCurrency)}
-                    </span>
+                    <div className="text-right">
+                      <span className={cn(
+                        "block font-black text-lg",
+                        percent > 90 ? "text-red-500" : "text-foreground"
+                      )}>
+                        {currencyService.format(b.spent, dashboardCurrency)}
+                      </span>
+                      <span className="text-[0.7rem] font-bold text-muted-foreground uppercase">sur {currencyService.format(b.amount, dashboardCurrency)}</span>
+                    </div>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <motion.div 
+                  <div className="h-2.5 bg-muted/30 rounded-full overflow-hidden">
+                    <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${percent}%` }}
                       className={cn(
-                        "h-full rounded-full",
-                        percent > 90 ? "bg-red-500" : "bg-accent"
-                      )} 
+                        "h-full rounded-full transition-colors duration-500",
+                        percent > 90 ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" : "bg-accent shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                      )}
                     />
                   </div>
                 </div>
@@ -168,8 +181,8 @@ const FinanceView: React.FC<Props> = ({
         <section className="mb-10">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[1rem] font-bold">Catégories Personnalisées</h3>
-            <button 
-              onClick={() => setShowAddModal('category')} 
+            <button
+              onClick={() => setShowAddModal('category')}
               className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
             >
               <Plus size={14} /> Nouveau
@@ -191,13 +204,13 @@ const FinanceView: React.FC<Props> = ({
       {/* Modals */}
       <AnimatePresence>
         {showAddModal === 'wallet' && (
-           <WalletAddModal onClose={() => setShowAddModal(null)} onAdd={onAddWallet} />
+          <WalletAddModal onClose={() => setShowAddModal(null)} onAdd={onAddWallet} />
         )}
         {showAddModal === 'category' && (
-           <CategoryAddModal onClose={() => setShowAddModal(null)} onAdd={onAddCategory} />
+          <CategoryAddModal onClose={() => setShowAddModal(null)} onAdd={onAddCategory} />
         )}
         {showAddModal === 'budget' && (
-           <BudgetAddModal onClose={() => setShowAddModal(null)} onAdd={onAddBudget} categories={categories} />
+          <BudgetAddModal onClose={() => setShowAddModal(null)} onAdd={onAddBudget} categories={categories} />
         )}
       </AnimatePresence>
     </motion.div>
@@ -218,9 +231,9 @@ const WalletAddModal = ({ onClose, onAdd }: any) => {
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1.5">
             <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Icône</Label>
-            <select 
-              value={icon} 
-              onChange={e => setIcon(e.target.value)} 
+            <select
+              value={icon}
+              onChange={e => setIcon(e.target.value)}
               className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50"
             >
               <option value="🏦">🏦 Banque</option>
@@ -230,9 +243,9 @@ const WalletAddModal = ({ onClose, onAdd }: any) => {
           </div>
           <div className="space-y-1.5">
             <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Devise</Label>
-            <select 
-              value={curr} 
-              onChange={e => setCurr(e.target.value)} 
+            <select
+              value={curr}
+              onChange={e => setCurr(e.target.value)}
               className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50"
             >
               {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -271,9 +284,9 @@ const BudgetAddModal = ({ onClose, onAdd, categories }: any) => {
       <form onSubmit={(e) => { e.preventDefault(); onAdd({ categoryId: catId, amount, period: 'monthly' }); onClose(); }} className="space-y-4">
         <div className="space-y-1.5">
           <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Catégorie</Label>
-          <select 
-            value={catId} 
-            onChange={e => setCatId(e.target.value)} 
+          <select
+            value={catId}
+            onChange={e => setCatId(e.target.value)}
             className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50"
           >
             <option value="">Sélectionner</option>
@@ -288,21 +301,23 @@ const BudgetAddModal = ({ onClose, onAdd, categories }: any) => {
 };
 
 const ModalWrapper = ({ children, title, onClose }: any) => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    className="fixed inset-0 z-[1100] flex items-center justify-center p-5 bg-black/40 backdrop-blur-md"
+    className="fixed inset-0 z-[1100] flex items-center justify-center p-5 bg-black/60 backdrop-blur-xl"
     onClick={onClose}
   >
-    <motion.div 
-      initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-      className="w-full max-w-[400px] bg-card p-[30px] rounded-[24px] shadow-2xl border border-border"
+    <motion.div
+      initial={{ scale: 0.9, y: 20, opacity: 0 }}
+      animate={{ scale: 1, y: 0, opacity: 1 }}
+      exit={{ scale: 0.9, y: 20, opacity: 0 }}
+      className="w-full max-w-[440px] bg-[#161618] p-8 rounded-[32px] shadow-2xl border border-white/10"
       onClick={e => e.stopPropagation()}
     >
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-black">{title}</h3>
-        <button 
-          onClick={onClose} 
-          className="bg-none border-none text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-2xl font-black text-white">{title}</h3>
+        <button
+          onClick={onClose}
+          className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 border border-white/5 text-white/50 cursor-pointer hover:bg-white/10 hover:text-white transition-all shadow-sm"
         >
           <X size={20} />
         </button>
@@ -315,10 +330,10 @@ const ModalWrapper = ({ children, title, onClose }: any) => (
 const Input = ({ label, value, onChange, type = "text" }: any) => (
   <div className="space-y-1.5">
     {label && <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">{label}</Label>}
-    <input 
-      type={type} 
-      value={value} 
-      onChange={e => onChange(e.target.value)} 
+    <input
+      type={type}
+      value={value}
+      onChange={e => onChange(e.target.value)}
       className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50 transition-colors"
     />
   </div>

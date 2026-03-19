@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeApi } from '../../api/financeApi';
 import type { 
   Wallet, Transaction, SavingsGoal, Debt, 
-  Category, RecurringTemplate, Budget 
+  Category, RecurringTemplate, Budget,
+  CreateTransactionInput
 } from '../../types';
 
 export const useWallets = () => {
@@ -77,22 +78,27 @@ export const useTransactions = () => {
   });
 
   const addTransactionMutation = useMutation({
-    mutationFn: financeApi.createTransaction,
+    mutationFn: (newTransaction: CreateTransactionInput & { id: string }) => 
+      financeApi.createTransaction(newTransaction),
     onMutate: async (newTransaction) => {
       await queryClient.cancelQueries({ queryKey: ['transactions'] });
       const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+      
+      const id = crypto.randomUUID();
+      const tempTransaction: Transaction = { 
+        ...newTransaction as any, 
+        id, 
+        date: new Date().toISOString(),
+        isReconciled: false,
+        updatedAt: new Date().toISOString(),
+        isDeleted: false 
+      };
+
       queryClient.setQueryData<Transaction[]>(['transactions'], (old = []) => [
-        { 
-          ...newTransaction, 
-          id: crypto.randomUUID(), 
-          date: new Date().toISOString(),
-          isReconciled: false,
-          updatedAt: new Date().toISOString(),
-          isDeleted: false 
-        } as Transaction,
+        tempTransaction,
         ...old,
       ]);
-      return { previousTransactions };
+      return { previousTransactions, id };
     },
     onError: (_err, _newTransaction, context) => {
       queryClient.setQueryData(['transactions'], context?.previousTransactions);
@@ -101,6 +107,11 @@ export const useTransactions = () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
+
+  const addTransaction = (data: CreateTransactionInput) => {
+    const id = crypto.randomUUID();
+    addTransactionMutation.mutate({ ...data, id });
+  };
 
   const deleteTransactionMutation = useMutation({
     mutationFn: financeApi.deleteTransaction,
@@ -122,7 +133,7 @@ export const useTransactions = () => {
 
   return { 
     ...query, 
-    addTransaction: addTransactionMutation.mutate,
+    addTransaction,
     deleteTransaction: deleteTransactionMutation.mutate
   };
 };

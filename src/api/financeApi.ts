@@ -30,12 +30,12 @@ export const financeApi = {
 
   // Transactions
   getTransactions: () => apiClient.get<Transaction[]>('/transactions'),
-  createTransaction: (transaction: CreateTransactionInput) => 
+  createTransaction: (transaction: CreateTransactionInput & { id?: string }) => 
     apiClient.post<Transaction>('/transactions', {
       ...transaction,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-      isReconciled: false,
+      id: transaction.id || crypto.randomUUID(),
+      date: transaction.date || new Date().toISOString(),
+      isReconciled: !!transaction.isReconciled,
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),

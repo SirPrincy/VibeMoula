@@ -59,29 +59,35 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       exit={{ opacity: 0, y: -20 }}
       className="dashboard py-2.5"
     >
-      <div className="stats-grid grid grid-cols-1 gap-5 mb-10 sm:grid-cols-3">
-        <div className="stat-card balance bg-card border border-border p-6 rounded-[20px]">
-          <div className="stat-label flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <WalletIcon size={16} /> Solde Total
+      <div className="stats-grid grid grid-cols-1 gap-6 mb-12 sm:grid-cols-3">
+        <div className="stat-card balance bg-card/40 border border-border p-6 rounded-[24px] backdrop-blur-sm shadow-subtle flex flex-col justify-between h-[160px]">
+          <div className="stat-label flex items-center gap-2 text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest">
+            <WalletIcon size={14} className="text-accent" /> Solde Total
           </div>
-          <div className="stat-value text-[1.8rem] font-black mb-1 text-accent">{currencyService.format(totals.balance, currency)}</div>
-          <div className="stat-meta text-[0.8rem] text-muted-foreground">Vibe consolidée</div>
+          <div>
+            <div className="stat-value text-[2.2rem] font-black tracking-tighter text-accent leading-none mb-1">{currencyService.format(totals.balance, currency)}</div>
+            <div className="stat-meta text-[0.75rem] font-medium text-muted-foreground/60">Vibe consolidée</div>
+          </div>
         </div>
         
-        <div className="stat-card income bg-card border border-border p-6 rounded-[20px]">
-          <div className="stat-label flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <TrendingUp size={16} /> Revenus
+        <div className="stat-card income bg-card/40 border border-border p-6 rounded-[24px] backdrop-blur-sm shadow-subtle flex flex-col justify-between h-[160px]">
+          <div className="stat-label flex items-center gap-2 text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest">
+            <TrendingUp size={14} className="text-emerald-500" /> Revenus
           </div>
-          <div className="stat-value text-[1.8rem] font-black mb-1 text-emerald-500">{currencyService.format(totals.income, currency)}</div>
-          <div className="stat-meta text-[0.8rem] text-muted-foreground">Ce mois-ci</div>
+          <div>
+            <div className="stat-value text-[2.2rem] font-black tracking-tighter text-emerald-500 leading-none mb-1">{currencyService.format(totals.income, currency)}</div>
+            <div className="stat-meta text-[0.75rem] font-medium text-muted-foreground/60">Ce mois-ci</div>
+          </div>
         </div>
 
-        <div className="stat-card expenses bg-card border border-border p-6 rounded-[20px]">
-          <div className="stat-label flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <TrendingDown size={16} /> Dépenses
+        <div className="stat-card expenses bg-card/40 border border-border p-6 rounded-[24px] backdrop-blur-sm shadow-subtle flex flex-col justify-between h-[160px]">
+          <div className="stat-label flex items-center gap-2 text-[0.7rem] font-bold text-muted-foreground uppercase tracking-widest">
+            <TrendingDown size={14} className="text-red-500" /> Dépenses
           </div>
-          <div className="stat-value text-[1.8rem] font-black mb-1 text-red-500">{currencyService.format(totals.expenses, currency)}</div>
-          <div className="stat-meta text-[0.8rem] text-muted-foreground">Ce mois-ci</div>
+          <div>
+            <div className="stat-value text-[2.2rem] font-black tracking-tighter text-red-500 leading-none mb-1">{currencyService.format(totals.expenses, currency)}</div>
+            <div className="stat-meta text-[0.75rem] font-medium text-muted-foreground/60">Ce mois-ci</div>
+          </div>
         </div>
       </div>
 
@@ -97,26 +103,32 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             const walletCurrency = wallet?.currency as Currency || currency;
             
             return (
-              <div key={t.id} className="transaction-item flex items-center gap-4 p-4 bg-card border border-border rounded-2xl">
+              <motion.div 
+                key={t.id} 
+                whileHover={{ x: 5 }}
+                className="transaction-item flex items-center gap-4 p-5 bg-card/40 border border-border rounded-[24px] backdrop-blur-sm shadow-subtle group transition-all hover:bg-card hover:border-accent/10"
+              >
                 <div className={cn(
-                  "icon-box p-2.5 rounded-xl flex transition-colors",
+                  "icon-box p-3 rounded-2xl flex transition-all group-hover:scale-110",
                   t.type === 'income' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
                 )}>
-                  {t.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                  {t.type === 'income' ? <ArrowUpRight size={20} /> : <ArrowDownLeft size={20} />}
                 </div>
-                <div className="details flex-1">
-                  <div className="desc font-bold text-sm mb-0.5">{t.description}</div>
-                  <div className="meta text-[0.8rem] text-muted-foreground">
-                    {t.category} • {new Date(t.date).toLocaleDateString('fr-FR')}
+                <div className="details flex-1 overflow-hidden">
+                  <div className="desc font-bold text-[0.95rem] tracking-tight mb-0.5 truncate">{t.description}</div>
+                  <div className="meta text-[0.75rem] font-medium text-muted-foreground/60 flex items-center gap-2">
+                    <span className="bg-muted/50 px-2 py-0.5 rounded-md">{t.category}</span>
+                    <span>•</span>
+                    <span>{new Date(t.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                   </div>
                 </div>
                 <div className={cn(
-                  "amount font-black text-[1.1rem]",
+                  "amount font-black text-[1.2rem] tracking-tight",
                   t.type === 'income' ? "text-emerald-500" : "text-red-500"
                 )}>
                   {t.type === 'income' ? '+' : '-'} {currencyService.format(Math.abs(t.amount), walletCurrency)}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

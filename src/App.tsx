@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useFinance } from './hooks/useFinance';
 import { recurringService } from './services/recurringService';
@@ -29,6 +29,14 @@ function App() {
     exportData,
     resetData
   } = useFinance();
+
+  const recentlyUsedCategoryIds = useMemo(() => {
+    const ids = transactions
+      .filter(t => t.categoryId)
+      .slice(0, 10)
+      .map(t => t.categoryId as string);
+    return Array.from(new Set(ids));
+  }, [transactions]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -126,7 +134,7 @@ function App() {
           onClose={() => setIsModalOpen(false)} 
           onSubmit={addTransaction} 
           wallets={wallets}
-          categories={categories}
+          recentlyUsedCategoryIds={recentlyUsedCategoryIds}
         />
       </div>
     </div>

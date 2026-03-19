@@ -123,8 +123,10 @@ app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: R
   } = req.body;
   const tagsStr = tags ? JSON.stringify(tags) : null;
   
+  const transactionId = (id as string) || crypto.randomUUID();
+  
   await db.insert(schema.transactions).values({ 
-    id: id as string, 
+    id: transactionId, 
     description: description as string, 
     amount: Number(amount), 
     categoryId: (categoryId as string) || null,
@@ -134,13 +136,13 @@ app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: R
     type: type as "income" | "expense" | "transfer", 
     walletId: walletId as string, 
     fromWalletId: (fromWalletId as string) || null,
-    date: date as string,
+    date: (date as string) || new Date().toISOString(),
     isReconciled: !!isReconciled,
-    updatedAt: updatedAt as string,
+    updatedAt: (updatedAt as string) || new Date().toISOString(),
     isDeleted: !!isDeleted
   });
   
-  res.status(201).json(req.body);
+  res.status(201).json({ ...req.body, id: transactionId });
 });
 
 app.delete('/api/transactions/:id', async (req: Request, res: Response) => {
