@@ -6,6 +6,12 @@ import type { Wallet, Transaction, Category, Budget, Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../types';
 import { currencyService } from '../services/currencyService';
 
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Download, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
+import { Label } from './ui/label';
 interface Props {
   transactions: Transaction[];
   wallets: Wallet[];
@@ -57,52 +63,57 @@ const FinanceView: React.FC<Props> = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Finance</h2>
-        <button onClick={onExport} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', fontWeight: 600 }}>
+      <div className="flex justify-between items-center mb-[30px]">
+        <h2 className="text-[1.8rem] font-black">Finance</h2>
+        <button 
+          onClick={onExport} 
+          className="flex items-center gap-1.5 bg-none border-none text-muted-foreground text-[0.8rem] font-bold cursor-pointer hover:text-foreground transition-colors"
+        >
           <Download size={16} /> Export
         </button>
       </div>
 
       {/* Sub-Tabs */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+      <div className="flex gap-5 mb-[30px] border-b border-border pb-2.5">
         {(['wallets', 'budgets', 'categories'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: activeSubTab === tab ? 'var(--accent)' : 'var(--muted)',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              textTransform: 'capitalize',
-              position: 'relative'
-            }}
+            className={cn(
+               "relative bg-none border-none font-bold text-[0.9rem] cursor-pointer capitalize transition-colors",
+               activeSubTab === tab ? "text-accent" : "text-muted-foreground hover:text-foreground"
+            )}
           >
             {tab === 'wallets' ? 'Comptes' : tab}
-            {activeSubTab === tab && <motion.div layoutId="subtab" style={{ position: 'absolute', bottom: '-11px', left: 0, right: 0, height: '2px', background: 'var(--accent)' }} />}
+            {activeSubTab === tab && (
+              <motion.div 
+                layoutId="subtab" 
+                className="absolute left-0 right-0 bottom-[-11px] h-[2px] bg-accent" 
+              />
+            )}
           </button>
         ))}
       </div>
 
       {activeSubTab === 'wallets' && (
-        <section style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>Mes Comptes</h3>
-            <button onClick={() => setShowAddModal('wallet')} style={{ background: 'var(--accent)', color: 'var(--bg)', border: 'none', borderRadius: '50px', padding: '5px 12px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+        <section className="mb-10">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[1rem] font-bold">Mes Comptes</h3>
+            <button 
+              onClick={() => setShowAddModal('wallet')} 
+              className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
+            >
               <Plus size={14} /> Nouveau
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
             {wallets.map(w => (
-              <div key={w.id} style={{ background: 'var(--card-bg)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '1.5rem' }}>{w.icon}</span>
-                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--muted)' }}>{w.name}</span>
+              <div key={w.id} className="bg-card p-5 rounded-[16px] border border-border transition-shadow hover:shadow-lg">
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <span className="text-[1.5rem]">{w.icon}</span>
+                  <span className="font-bold text-[0.9rem] text-muted-foreground">{w.name}</span>
                 </div>
-                <div style={{ fontWeight: 800, fontSize: '1.4rem' }}>
+                <div className="font-black text-[1.4rem]">
                   {currencyService.format((w.initialBalance || 0) + (walletBalances[w.id] || 0), w.currency as Currency)}
                 </div>
               </div>
@@ -112,37 +123,42 @@ const FinanceView: React.FC<Props> = ({
       )}
 
       {activeSubTab === 'budgets' && (
-        <section style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>Budgets Mensuels</h3>
-            <button onClick={() => setShowAddModal('budget')} style={{ background: 'var(--accent)', color: 'var(--bg)', border: 'none', borderRadius: '50px', padding: '5px 12px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+        <section className="mb-10">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[1rem] font-bold">Budgets Mensuels</h3>
+            <button 
+              onClick={() => setShowAddModal('budget')} 
+              className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
+            >
               <Plus size={14} /> Nouveau
             </button>
           </div>
-          <div style={{ display: 'grid', gap: '15px' }}>
+          <div className="grid gap-4">
             {budgetProgress.map(b => {
               const category = categories.find(c => c.id === b.categoryId);
               const percent = Math.min((b.spent / b.amount) * 100, 100);
               return (
-                <div key={b.id} style={{ background: 'var(--card-bg)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '1.2rem' }}>{category?.icon || '📁'}</span>
-                      <span style={{ fontWeight: 700 }}>{category?.name || 'Inconnu'}</span>
+                <div key={b.id} className="bg-card p-5 rounded-[16px] border border-border">
+                  <div className="flex justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                       <span className="text-[1.2rem]">{category?.icon || '📁'}</span>
+                       <span className="font-bold">{category?.name || 'Inconnu'}</span>
                     </div>
-                    <span style={{ fontWeight: 700, color: percent > 90 ? 'var(--error)' : 'var(--fg)' }}>
+                    <span className={cn(
+                      "font-bold",
+                      percent > 90 ? "text-red-500" : "text-foreground"
+                    )}>
                       {currencyService.format(b.spent, dashboardCurrency)} / {currencyService.format(b.amount, dashboardCurrency)}
                     </span>
                   </div>
-                  <div style={{ height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${percent}%` }}
-                      style={{ 
-                        height: '100%', 
-                        background: percent > 90 ? '#ef4444' : 'var(--accent)',
-                        borderRadius: '4px' 
-                      }} 
+                      className={cn(
+                        "h-full rounded-full",
+                        percent > 90 ? "bg-red-500" : "bg-accent"
+                      )} 
                     />
                   </div>
                 </div>
@@ -153,18 +169,21 @@ const FinanceView: React.FC<Props> = ({
       )}
 
       {activeSubTab === 'categories' && (
-        <section style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>Catégories Personnalisées</h3>
-            <button onClick={() => setShowAddModal('category')} style={{ background: 'var(--accent)', color: 'var(--bg)', border: 'none', borderRadius: '50px', padding: '5px 12px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+        <section className="mb-10">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[1rem] font-bold">Catégories Personnalisées</h3>
+            <button 
+              onClick={() => setShowAddModal('category')} 
+              className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
+            >
               <Plus size={14} /> Nouveau
             </button>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div className="flex flex-wrap gap-2.5">
             {categories.map(c => (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--card-bg)', padding: '8px 16px', borderRadius: '100px', border: '1px solid var(--border)' }}>
+              <div key={c.id} className="flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2 hover:bg-muted/50 transition-colors">
                 <span>{c.icon}</span>
-                <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{c.name}</span>
+                <span className="font-bold text-[0.85rem]">{c.name}</span>
               </div>
             ))}
           </div>
@@ -173,7 +192,7 @@ const FinanceView: React.FC<Props> = ({
 
       <TransactionList transactions={transactions} wallets={wallets} categories={categories} />
 
-      {/* Simplified Add Modal (Reusable structure or individual ones) */}
+      {/* Modals */}
       <AnimatePresence>
         {showAddModal === 'wallet' && (
            <WalletAddModal onClose={() => setShowAddModal(null)} onAdd={onAddWallet} />
@@ -198,29 +217,37 @@ const WalletAddModal = ({ onClose, onAdd }: any) => {
 
   return (
     <ModalWrapper title="Nouveau Portefeuille" onClose={onClose}>
-      <form onSubmit={(e) => { e.preventDefault(); onAdd({ name, icon, currency: curr, initialBalance: initial }); onClose(); }}>
+      <form onSubmit={(e) => { e.preventDefault(); onAdd({ name, icon, currency: curr, initialBalance: initial }); onClose(); }} className="space-y-4">
         <Input label="Nom" value={name} onChange={setName} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '15px' }}>
-          <div>
-            <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>ICÔNE</label>
-            <select value={icon} onChange={e => setIcon(e.target.value)} style={selectStyle}>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="space-y-1.5">
+            <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Icône</Label>
+            <select 
+              value={icon} 
+              onChange={e => setIcon(e.target.value)} 
+              className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50"
+            >
               <option value="🏦">🏦 Banque</option>
               <option value="💵">💵 Cash</option>
               <option value="💳">💳 Carte</option>
             </select>
           </div>
-          <div>
-            <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>DEVISE</label>
-            <select value={curr} onChange={e => setCurr(e.target.value)} style={selectStyle}>
+          <div className="space-y-1.5">
+            <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Devise</Label>
+            <select 
+              value={curr} 
+              onChange={e => setCurr(e.target.value)} 
+              className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50"
+            >
               {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
-        <div style={{ marginTop: '15px' }}>
-          <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>SOLDE INITIAL</label>
-          <input type="number" value={initial} onChange={e => setInitial(Number(e.target.value))} style={inputStyle} />
+        <div className="space-y-1.5">
+          <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Solde Initial</Label>
+          <Input type="number" value={initial} onChange={(v: any) => setInitial(Number(v))} />
         </div>
-        <button type="submit" style={buttonStyle}>Créer</button>
+        <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">Créer</Button>
       </form>
     </ModalWrapper>
   );
@@ -231,10 +258,10 @@ const CategoryAddModal = ({ onClose, onAdd }: any) => {
   const [icon, setIcon] = useState('📁');
   return (
     <ModalWrapper title="Nouvelle Catégorie" onClose={onClose}>
-      <form onSubmit={(e) => { e.preventDefault(); onAdd({ name, icon, type: 'expense' }); onClose(); }}>
+      <form onSubmit={(e) => { e.preventDefault(); onAdd({ name, icon, type: 'expense' }); onClose(); }} className="space-y-4">
         <Input label="Nom" value={name} onChange={setName} />
         <Input label="Icône" value={icon} onChange={setIcon} />
-        <button type="submit" style={buttonStyle}>Créer</button>
+        <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">Créer</Button>
       </form>
     </ModalWrapper>
   );
@@ -245,16 +272,20 @@ const BudgetAddModal = ({ onClose, onAdd, categories }: any) => {
   const [amount, setAmount] = useState(0);
   return (
     <ModalWrapper title="Définir un Budget" onClose={onClose}>
-      <form onSubmit={(e) => { e.preventDefault(); onAdd({ categoryId: catId, amount, period: 'monthly' }); onClose(); }}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ fontSize: '0.7rem', fontWeight: 800 }}>CATÉGORIE</label>
-          <select value={catId} onChange={e => setCatId(e.target.value)} style={selectStyle}>
+      <form onSubmit={(e) => { e.preventDefault(); onAdd({ categoryId: catId, amount, period: 'monthly' }); onClose(); }} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Catégorie</Label>
+          <select 
+            value={catId} 
+            onChange={e => setCatId(e.target.value)} 
+            className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50"
+          >
             <option value="">Sélectionner</option>
             {categories.map((c: any) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
           </select>
         </div>
         <Input label="Montant Mensuel" type="number" value={amount} onChange={(v: any) => setAmount(Number(v))} />
-        <button type="submit" style={buttonStyle}>Définir</button>
+        <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">Définir</Button>
       </form>
     </ModalWrapper>
   );
@@ -263,17 +294,22 @@ const BudgetAddModal = ({ onClose, onAdd, categories }: any) => {
 const ModalWrapper = ({ children, title, onClose }: any) => (
   <motion.div 
     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+    className="fixed inset-0 z-[1100] flex items-center justify-center p-5 bg-black/40 backdrop-blur-md"
     onClick={onClose}
   >
     <motion.div 
       initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-      style={{ background: 'var(--card-bg)', padding: '30px', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '400px' }}
+      className="w-full max-w-[400px] bg-card p-[30px] rounded-[24px] shadow-2xl border border-border"
       onClick={e => e.stopPropagation()}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3 style={{ fontWeight: 800 }}>{title}</h3>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}><X size={20} /></button>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-black">{title}</h3>
+        <button 
+          onClick={onClose} 
+          className="bg-none border-none text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+        >
+          <X size={20} />
+        </button>
       </div>
       {children}
     </motion.div>
@@ -281,14 +317,15 @@ const ModalWrapper = ({ children, title, onClose }: any) => (
 );
 
 const Input = ({ label, value, onChange, type = "text" }: any) => (
-  <div style={{ marginBottom: '15px' }}>
-    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--muted)', display: 'block', marginBottom: '5px' }}>{label.toUpperCase()}</label>
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} style={inputStyle} />
+  <div className="space-y-1.5">
+    {label && <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">{label}</Label>}
+    <input 
+      type={type} 
+      value={value} 
+      onChange={e => onChange(e.target.value)} 
+      className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50 transition-colors"
+    />
   </div>
 );
-
-const inputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--fg)', outline: 'none' };
-const selectStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--fg)', outline: 'none' };
-const buttonStyle = { width: '100%', padding: '15px', marginTop: '20px', borderRadius: '12px', background: 'var(--accent)', color: 'var(--bg)', border: 'none', fontWeight: 800, cursor: 'pointer' };
 
 export default FinanceView;

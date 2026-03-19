@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, CheckCircle2, Circle, Calendar } from 'lucide-react';
 import { useFinance } from '../hooks/useFinance';
+import { cn } from '@/lib/utils';
 
 const DebtView: React.FC = () => {
   const { debts, addDebt, updateDebt, deleteDebt, addTransaction, wallets, dashboardCurrency } = useFinance();
@@ -82,58 +83,37 @@ const DebtView: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="view-container"
+      className="view-container pb-10 px-0 md:px-2.5"
     >
-      <header style={{ marginBottom: '40px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.5px' }}>Dettes</h2>
+      <header className="mb-10">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-[2rem] font-extrabold tracking-[-0.5px]">Dettes</h2>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsAdding(!isAdding)}
-            style={{ 
-              background: 'var(--negative)', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '100px', 
-              padding: '10px 20px', 
-              fontWeight: 700, 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
+            className="bg-red-500 text-white border-none rounded-full px-5 py-2.5 font-bold flex items-center gap-2 cursor-pointer text-[0.9rem] transition-transform"
           >
             <Plus size={18} /> {isAdding ? 'Annuler' : 'Ajouter une Dette'}
           </motion.button>
         </div>
 
-        <div style={{ 
-          background: 'var(--card-bg)', 
-          padding: '24px', 
-          borderRadius: 'var(--radius-lg)', 
-          border: '1px solid var(--border)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          boxShadow: 'var(--shadow-subtle)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="bg-card p-6 rounded-[24px] border border-border flex flex-col gap-4 shadow-subtle text-foreground">
+          <div className="flex justify-between items-center">
             <div>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reste à payer</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--negative)' }}>{totalRemaining.toLocaleString()} {dashboardCurrency}</div>
+              <span className="text-[0.8rem] font-bold text-muted-foreground uppercase tracking-[0.5px]">Reste à payer</span>
+              <div className="text-[1.8rem] font-black text-red-500">{totalRemaining.toLocaleString()} {dashboardCurrency}</div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Progression Remboursement</span>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{payoffProgress.toFixed(0)}%</div>
+            <div className="text-right">
+              <span className="text-[0.8rem] font-bold text-muted-foreground uppercase tracking-[0.5px]">Progression Remboursement</span>
+              <div className="text-[1.2rem] font-bold">{payoffProgress.toFixed(0)}%</div>
             </div>
           </div>
-          <div style={{ height: '8px', background: 'var(--bg)', borderRadius: '100px', overflow: 'hidden' }}>
+          <div className="h-2 bg-background rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${payoffProgress}%` }}
-              style={{ height: '100%', background: 'var(--negative)', borderRadius: '100px' }} 
+              className="h-full bg-red-500 rounded-full" 
             />
           </div>
         </div>
@@ -146,57 +126,47 @@ const DebtView: React.FC = () => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             onSubmit={handleAdd}
-            style={{ 
-              overflow: 'hidden',
-              marginBottom: '30px',
-              background: 'var(--card-bg)',
-              padding: '24px',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px'
-            }}
+            className="overflow-hidden mb-[30px] bg-card p-6 rounded-[24px] border border-border flex flex-col gap-4 shadow-lg text-foreground"
           >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div className="input-field">
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>TITRE DE LA DETTE</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-[0.75rem] font-bold text-muted-foreground uppercase">TITRE DE LA DETTE</label>
                 <input 
                   type="text" 
                   placeholder="ex: Prêt Amis" 
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: '12px', color: 'var(--fg)', fontWeight: 600, outline: 'none' }}
+                  className="w-full bg-background border border-border p-3 rounded-xl text-foreground font-semibold outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
                 />
               </div>
-              <div className="input-field">
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>MONTANT INITIAL</label>
+              <div className="flex flex-col gap-2">
+                <label className="text-[0.75rem] font-bold text-muted-foreground uppercase">MONTANT INITIAL</label>
                 <input 
                   type="number" 
                   placeholder="0.00" 
                   value={newAmount}
                   onChange={(e) => setNewAmount(e.target.value)}
-                  style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: '12px', color: 'var(--fg)', fontWeight: 600, outline: 'none' }}
+                  className="w-full bg-background border border-border p-3 rounded-xl text-foreground font-semibold outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
                 />
               </div>
             </div>
-            <div className="input-field">
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>DATE D'ÉCHÉANCE (OPTIONNEL)</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-[0.75rem] font-bold text-muted-foreground uppercase">DATE D'ÉCHÉANCE (OPTIONNEL)</label>
               <input 
                 type="date" 
                 value={newDueDate}
                 onChange={(e) => setNewDueDate(e.target.value)}
-                style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: '12px', color: 'var(--fg)', fontWeight: 600, outline: 'none' }}
+                className="w-full bg-background border border-border p-3 rounded-xl text-foreground font-semibold outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
               />
             </div>
-            <button type="submit" style={{ background: 'var(--fg)', color: 'var(--bg)', border: 'none', borderRadius: '12px', padding: '14px', fontWeight: 800, cursor: 'pointer', marginTop: '8px' }}>
+            <button type="submit" className="bg-foreground text-background border-none rounded-xl p-3.5 font-black cursor-pointer mt-2 hover:opacity-90 active:scale-[0.98] transition-all">
               ENREGISTRER LA DETTE
             </button>
           </motion.form>
         )}
       </AnimatePresence>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="flex flex-col gap-3">
         <AnimatePresence>
           {debts.map((debt) => {
             const repaymentAmount = customRepayments[debt.id] || '';
@@ -211,45 +181,52 @@ const DebtView: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onClick={() => !isExpanded && !debt.isPaid && setExpandedDebtId(debt.id)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '20px',
-                  background: 'var(--card-bg)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border)',
-                  opacity: debt.isPaid ? 0.6 : 1,
-                  transition: 'opacity 0.3s ease',
-                  boxShadow: 'var(--shadow-subtle)',
-                  cursor: !debt.isPaid && !isExpanded ? 'pointer' : 'default'
-                }}
+                className={cn(
+                  "flex flex-col p-5 bg-card rounded-2xl border border-border transition-all text-foreground",
+                  debt.isPaid ? "opacity-60" : "opacity-100 shadow-subtle",
+                  !debt.isPaid && !isExpanded ? "cursor-pointer hover:border-red-500/30" : "cursor-default"
+                )}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (debt.isPaid || !isExpanded) ? 0 : '16px' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div className={cn(
+                  "flex justify-between items-center",
+                  (debt.isPaid || !isExpanded) ? "mb-0" : "mb-4"
+                )}>
+                   <div className="flex items-center gap-4">
                     <motion.button 
                       whileTap={{ scale: 0.8 }}
                       onClick={(e) => { e.stopPropagation(); togglePaid(debt.id); }} 
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: debt.isPaid ? 'var(--positive)' : 'var(--muted)' }}
+                      className={cn(
+                        "bg-transparent border-none p-0 cursor-pointer",
+                        debt.isPaid ? "text-emerald-500" : "text-muted-foreground"
+                      )}
                     >
                       {debt.isPaid ? <CheckCircle2 size={24} /> : <Circle size={24} />}
                     </motion.button>
                     <div>
-                      <span style={{ fontWeight: 700, fontSize: '1.05rem', textDecoration: debt.isPaid ? 'line-through' : 'none' }}>{debt.title}</span>
+                      <span className={cn(
+                        "font-bold text-[1.05rem]",
+                        debt.isPaid && "line-through text-muted-foreground"
+                      )}>{debt.title}</span>
                       {!debt.isPaid && debt.dueDate && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                        <div className="text-[0.75rem] text-muted-foreground font-semibold flex items-center gap-1 mt-0.5">
                           <Calendar size={12} /> Échéance : {new Date(debt.dueDate).toLocaleDateString()}
                         </div>
                       )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 800, color: debt.isPaid ? 'var(--muted)' : 'var(--fg)' }}>{debt.remaining.toLocaleString()} {debt.currency}</div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className={cn("font-black", debt.isPaid ? "text-muted-foreground" : "text-foreground")}>
+                        {debt.remaining.toLocaleString()} {debt.currency}
+                      </div>
                       {!debt.isPaid && (
-                        <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 700 }}>SUR {debt.amount.toLocaleString()}</div>
+                        <div className="text-[0.7rem] text-muted-foreground font-bold uppercase">SUR {debt.amount.toLocaleString()}</div>
                       )}
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); deleteDebt(debt.id); }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: '4px' }}>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); deleteDebt(debt.id); }} 
+                      className="bg-transparent border-none text-muted-foreground cursor-pointer p-1 hover:text-red-500 transition-colors"
+                    >
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -261,34 +238,37 @@ const DebtView: React.FC = () => {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderTop: '1px solid var(--bg)', paddingTop: '16px' }}
+                    className="flex flex-col gap-4 border-t border-background pt-4"
                   >
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="flex gap-2">
                       <input 
                         autoFocus
                         type="number"
                         placeholder="Montant du remboursement"
                         value={repaymentAmount}
                         onChange={(e) => setCustomRepayments(prev => ({ ...prev, [debt.id]: e.target.value }))}
-                        style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--fg)', outline: 'none' }}
+                        className="flex-1 bg-background border border-border p-2 rounded-[10px] text-[0.85rem] font-semibold text-foreground outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
                       />
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handlePayment(debt.id, parseFloat(repaymentAmount || '0'))}
                         disabled={!repaymentAmount}
-                        style={{ padding: '8px 16px', background: 'var(--negative)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', opacity: repaymentAmount ? 1 : 0.5 }}
+                        className={cn(
+                          "px-4 py-2 bg-red-500 text-white border-none rounded-[10px] font-bold text-[0.8rem] cursor-pointer transition-opacity",
+                          !repaymentAmount && "opacity-50"
+                        )}
                       >
                         Rembourser
                       </motion.button>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted)' }}>
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-[0.8rem] font-semibold text-muted-foreground hover:text-foreground transition-colors">
                         <input 
                           type="checkbox"
                           checked={isLogging}
                           onChange={(e) => setIsLoggingTransaction(prev => ({ ...prev, [debt.id]: e.target.checked }))}
-                          style={{ accentColor: 'var(--negative)' }}
+                          className="accent-red-500 w-4 h-4 rounded"
                         />
                         <span>Enregistrer transaction FINANCE</span>
                       </label>
@@ -299,7 +279,7 @@ const DebtView: React.FC = () => {
                           animate={{ opacity: 1, height: 'auto' }}
                           value={selectedWallets[debt.id] || wallets[0]?.id || ''}
                           onChange={(e) => setSelectedWallets(prev => ({ ...prev, [debt.id]: e.target.value }))}
-                          style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--fg)', outline: 'none' }}
+                          className="w-full bg-background border border-border p-1.5 rounded-lg text-[0.75rem] font-semibold text-foreground outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
                         >
                           {wallets.map(w => (
                             <option key={w.id} value={w.id}>{w.icon} {w.name}</option>
@@ -309,7 +289,7 @@ const DebtView: React.FC = () => {
                       
                       <button 
                         onClick={() => setExpandedDebtId(null)}
-                        style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', textAlign: 'center', padding: '8px' }}
+                        className="bg-transparent border-none text-muted-foreground text-[0.7rem] font-bold cursor-pointer text-center p-2 hover:text-foreground transition-all"
                       >
                         ANNULER
                       </button>
@@ -318,8 +298,8 @@ const DebtView: React.FC = () => {
                 )}
                 
                 {!debt.isPaid && !isExpanded && (
-                  <div style={{ textAlign: 'center', marginTop: '8px' }}>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--negative)', textTransform: 'uppercase' }}>Gérer</span>
+                  <div className="text-center mt-2">
+                    <span className="text-[0.7rem] font-black text-red-500 uppercase tracking-widest">Gérer</span>
                   </div>
                 )}
               </motion.div>
@@ -327,22 +307,6 @@ const DebtView: React.FC = () => {
           })}
         </AnimatePresence>
       </div>
-
-      <style>{`
-        .view-container {
-          padding-bottom: 40px;
-        }
-        @media (max-width: 768px) {
-          .view-container {
-            padding: 0 10px;
-          }
-        }
-        input[type="checkbox"] {
-          width: 16px;
-          height: 16px;
-          border-radius: 4px;
-        }
-      `}</style>
     </motion.div>
   );
 };

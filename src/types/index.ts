@@ -1,8 +1,9 @@
-export type TransactionType = 'income' | 'expense' | 'transfer';
-export type CategoryType = 'income' | 'expense';
+import type { TransactionType, CategoryType } from '../lib/schemas';
 
 export const SUPPORTED_CURRENCIES = ['FCFA', 'USD', 'EUR', 'Ar', 'CAD', 'CHF', 'GBP'] as const;
 export type Currency = typeof SUPPORTED_CURRENCIES[number];
+
+export type { TransactionType, CategoryType };
 
 export interface BaseEntity {
   id: string;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, Wallet, ReceiptText, PiggyBank, Plus, Settings } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export type Tab = 'dashboard' | 'finance' | 'savings' | 'debt' | 'settings';
 
@@ -26,7 +27,10 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
       <button
         key={tab.id}
         onClick={() => setActiveTab(tab.id)}
-        className={`nav-item ${isActive ? 'active' : ''}`}
+        className={cn(
+          "nav-item relative z-10 flex flex-1 flex-col items-center gap-1 bg-none border-none text-muted-foreground cursor-pointer transition-colors duration-300 lg:flex-none lg:flex-row lg:gap-[15px] lg:px-5 lg:py-3.5 lg:w-full lg:justify-start lg:rounded-2xl",
+          isActive ? "text-foreground" : ""
+        )}
       >
         <motion.div
           initial={false}
@@ -35,11 +39,14 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
         >
           <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
         </motion.div>
-        <span className="nav-label">{tab.label}</span>
+        <span className={cn(
+          "nav-label text-[0.55rem] font-bold uppercase tracking-[0.5px] lg:text-[0.95rem] lg:normal-case lg:tracking-normal",
+          isActive ? "" : ""
+        )}>{tab.label}</span>
         {isActive && (
           <motion.div
             layoutId="active-pill"
-            className="active-pill"
+            className="active-pill absolute inset-0 -z-10 rounded-full border border-border bg-background lg:rounded-2xl"
             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
           />
         )}
@@ -48,18 +55,21 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
   };
 
   return (
-    <nav className="navbar-container">
-      <div className="navbar-content">
-        <div className="nav-logo desktop-only">
-          <span className="logo-text">VibeMoula</span>
+    <nav className="navbar-container fixed bottom-5 left-1/2 z-50 w-[calc(100%-30px)] max-w-[440px] -translate-x-1/2 rounded-[100px] border border-border bg-card/15 p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:left-[30px] lg:top-[30px] lg:bottom-[30px] lg:w-[240px] lg:max-w-[240px] lg:translate-x-0 lg:rounded-3xl lg:px-[15px] lg:py-10">
+      <div className="navbar-content w-full">
+        <div className="nav-logo desktop-only hidden lg:mb-10 lg:flex lg:pl-5">
+          <span className="logo-text text-2xl font-black tracking-[-1px] text-foreground">VibeMoula</span>
         </div>
         
-        <div className="tabs-wrapper">
+        <div className="tabs-wrapper w-full">
           {/* Mobile Layout with central plus - Filter out settings */}
-          <div className="mobile-tabs-container">
+          <div className="mobile-tabs-container flex w-full items-center justify-between px-2.5 lg:hidden">
             {tabs.filter(t => t.id !== 'settings').slice(0, 2).map(renderTab)}
             
-            <button className="nav-add-btn" onClick={onAddClick}>
+            <button 
+              className="nav-add-btn mx-[5px] flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-background shadow-[0_8px_20px_rgba(0,0,0,0.1)] transition-transform active:scale-90 border-none cursor-pointer" 
+              onClick={onAddClick}
+            >
               <Plus size={24} />
             </button>
             
@@ -67,199 +77,20 @@ const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, onAddClick }) => {
           </div>
 
           {/* Desktop Layout (Standard list with Add button at top) */}
-          <div className="desktop-tabs-container desktop-only">
-            <button className="sidebar-add-btn" onClick={onAddClick}>
+          <div className="desktop-tabs-container desktop-only hidden lg:flex lg:flex-col lg:w-full">
+            <button 
+              className="sidebar-add-btn mb-[30px] flex w-full items-center gap-2.5 rounded-2xl bg-accent px-5 py-4 text-[1rem] font-black text-background transition-all hover:scale-[1.02] active:scale-100 hover:opacity-90 border-none cursor-pointer" 
+              onClick={onAddClick}
+            >
                <Plus size={20} /> Nouveau
             </button>
             
-            <div className="sidebar-tabs-list">
+            <div className="sidebar-tabs-list flex flex-col gap-2.5 w-full">
               {tabs.map(renderTab)}
             </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .navbar-container {
-          position: fixed;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: calc(100% - 30px);
-          max-width: 440px;
-          z-index: 1000;
-          background: var(--card-bg);
-          border: 1px solid var(--border);
-          border-radius: 100px;
-          padding: 6px;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-          backdrop-filter: blur(15px);
-        }
-
-        .navbar-content {
-          width: 100%;
-        }
-
-        .tabs-wrapper {
-          width: 100%;
-        }
-
-        .mobile-tabs-container {
-          display: flex;
-          justify-content: space-between;
-          padding: 0 10px;
-          align-items: center;
-          width: 100%;
-        }
-
-        .nav-logo, .desktop-only {
-          display: none;
-        }
-
-        .nav-item {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-          padding: 8px 0;
-          background: none;
-          border: none;
-          color: var(--muted);
-          cursor: pointer;
-          position: relative;
-          transition: color 0.3s ease;
-          z-index: 1;
-        }
-
-        .nav-item.active {
-          color: var(--fg);
-        }
-
-        .nav-label {
-          font-size: 0.55rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .active-pill {
-          position: absolute;
-          inset: 0;
-          background: var(--bg);
-          border-radius: 100px;
-          z-index: -1;
-          border: 1px solid var(--border);
-        }
-
-        .nav-add-btn {
-          width: 48px;
-          height: 48px;
-          background: var(--accent);
-          color: var(--bg);
-          border: none;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-          cursor: pointer;
-          transition: transform 0.2s ease;
-          margin: 0 5px;
-          flex-shrink: 0;
-        }
-
-        .nav-add-btn:active {
-          transform: scale(0.9);
-        }
-
-        /* Desktop Sidebar Styles */
-        @media (min-width: 1024px) {
-          .desktop-only {
-            display: flex;
-          }
-          .mobile-tabs-container {
-            display: none;
-          }
-
-          .navbar-container {
-            left: 30px;
-            top: 30px;
-            bottom: 30px;
-            transform: none;
-            width: 240px;
-            max-width: 240px;
-            border-radius: 24px;
-            padding: 40px 15px;
-          }
-
-          .nav-logo {
-            display: flex;
-            margin-bottom: 40px;
-            padding-left: 20px;
-          }
-
-          .logo-text {
-            font-size: 1.5rem;
-            font-weight: 900;
-            letter-spacing: -1px;
-            color: var(--fg);
-          }
-
-          .desktop-tabs-container {
-            flex-direction: column;
-            width: 100%;
-          }
-
-          .sidebar-tabs-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-          }
-
-          .nav-item {
-            flex: none;
-            flex-direction: row;
-            gap: 15px;
-            padding: 14px 20px;
-            width: 100%;
-            justify-content: flex-start;
-            border-radius: 16px;
-          }
-
-          .nav-label {
-            font-size: 0.95rem;
-            text-transform: none;
-          }
-
-          .active-pill {
-            border-radius: 16px;
-          }
-
-          .sidebar-add-btn {
-            margin-bottom: 30px;
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            border-radius: 16px;
-            padding: 16px 20px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
-            width: 100%;
-            font-size: 1rem;
-          }
-          
-          .sidebar-add-btn:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-          }
-        }
-      `}</style>
     </nav>
   );
 };

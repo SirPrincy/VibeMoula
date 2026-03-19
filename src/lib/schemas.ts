@@ -3,10 +3,13 @@ import { z } from 'zod';
 export const CATEGORIES = ['food', 'shopping', 'transport', 'home', 'salary', 'leisure', 'other'] as const;
 export type Category = typeof CATEGORIES[number];
 
-export const TRANSACTION_TYPES = ['income', 'expense'] as const;
+export const CATEGORY_TYPES = ['income', 'expense'] as const;
+export type CategoryType = typeof CATEGORY_TYPES[number];
+
+export const TRANSACTION_TYPES = ['income', 'expense', 'transfer'] as const;
 export type TransactionType = typeof TRANSACTION_TYPES[number];
 
-export const SUB_CATEGORIES: Record<Category, string[]> = {
+export const SUB_CATEGORIES: Record<string, string[]> = {
     food: ['Resto', 'Courses', 'Café', 'Snacks'],
     shopping: ['Vêtements', 'Tech', 'Maison', 'Cadeaux'],
     transport: ['Carburant', 'Bus/Métro', 'Taxi/Uber'],
@@ -18,13 +21,16 @@ export const SUB_CATEGORIES: Record<Category, string[]> = {
 
 // Transaction schema
 export const transactionSchema = z.object({
-    amount: z.number({ message: 'Le montant est requis' }).positive('Le montant doit être positif'),
+    amount: z.coerce.number({ message: 'Le montant est requis' }).positive('Le montant doit être positif'),
     walletId: z.string({ message: 'Le wallet est requis' }).min(1, 'Sélectionnez un wallet'),
-    category: z.enum([...CATEGORIES], { message: 'La catégorie est requise' }),
-    subCategory: z.string({ message: 'La sous-catégorie est requise' }).min(1, 'Sélectionnez une sous-catégorie'),
-    type: z.enum([...TRANSACTION_TYPES], { message: 'Le type est requis' }),
-    tags: z.string().optional(),
-    description: z.string().optional(),
+    categoryId: z.string().optional(),
+    category: z.string({ message: 'La catégorie est requise' }),
+    subCategory: z.string().optional(),
+    type: z.enum(TRANSACTION_TYPES, { message: 'Le type est requis' }),
+    tags: z.array(z.string()).default([]),
+    description: z.string().min(1, 'La description est requise'),
+    date: z.string().default(() => new Date().toISOString()),
+    isReconciled: z.boolean().default(false),
 });
 
 export type TransactionFormData = z.infer<typeof transactionSchema>;

@@ -12,6 +12,7 @@ import DashboardView from './components/DashboardView';
 import SavingsView from './components/SavingsView';
 import SettingsView from './components/SettingsView';
 import { Settings } from 'lucide-react';
+import { cn } from './lib/utils';
 
 function App() {
   const { 
@@ -51,45 +52,28 @@ function App() {
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   return (
-    <div className="layout-root">
+    <div className="layout-root flex flex-col min-h-screen lg:flex-row">
       <Navbar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         onAddClick={() => setIsModalOpen(true)}
       />
       
-      <div className="container" style={{ 
-        maxWidth: '1200px', 
-        padding: '40px 20px 140px 20px'
-      }}>
-        <header className="mobile-header mobile-only" style={{ 
-          marginBottom: '40px', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          padding: '0 10px',
-          width: '100%'
-        }}>
-          <h1 className="logo-title" style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.5px' }}>VibeMoula</h1>
+      <div className="container grow w-full max-w-[1200px] px-5 pt-10 pb-[140px] lg:ml-[270px] lg:px-20 lg:py-[60px] lg:max-w-none">
+        <header className="mobile-header mobile-only mb-10 flex w-full items-center justify-between px-2.5 lg:hidden">
+          <h1 className="logo-title text-[1.4rem] font-extrabold tracking-[-0.5px]">VibeMoula</h1>
           <button 
             onClick={() => setActiveTab(prev => prev === 'settings' ? 'dashboard' : 'settings')}
-            className="settings-trigger"
-            style={{ 
-              background: 'var(--card-bg)', 
-              border: '1px solid var(--border)', 
-              padding: '8px', 
-              borderRadius: '100px', 
-              cursor: 'pointer', 
-              color: activeTab === 'settings' ? 'var(--accent)' : 'var(--fg)',
-              display: 'flex',
-              alignItems: 'center'
-            }}
+            className={cn(
+              "settings-trigger flex items-center rounded-full border border-border bg-card p-2 transition-colors",
+              activeTab === 'settings' ? "text-accent" : "text-foreground"
+            )}
           >
             <Settings size={18} />
           </button>
         </header>
 
-        <main className="main-content" style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <main className="main-content w-full max-w-[600px] mx-auto lg:max-w-[900px] lg:mx-0">
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <DashboardView 
@@ -145,30 +129,6 @@ function App() {
           categories={categories}
         />
       </div>
-
-      <style>{`
-        .layout-root {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-        }
-
-        @media (min-width: 1024px) {
-          .layout-root {
-            flex-direction: row;
-          }
-          .container {
-            margin-left: 270px !important;
-            padding: 60px 80px !important;
-            flex: 1;
-            max-width: none !important;
-          }
-          .main-content {
-            max-width: 900px !important;
-            margin: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
