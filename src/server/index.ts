@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as schema from '../db/schema.ts';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { validate } from './middleware/validate.ts';
@@ -46,7 +46,9 @@ console.log('Migrations applied successfully');
 // Routes API Wallets
 app.get('/api/wallets', async (_req: Request, res: Response) => {
   try {
-    const allWallets = await db.select().from(schema.wallets);
+    const allWallets = await db.select()
+      .from(schema.wallets)
+      .where(eq(schema.wallets.isDeleted, false));
     res.json(allWallets);
   } catch (error) {
     console.error('Error fetching wallets:', error);
@@ -55,14 +57,17 @@ app.get('/api/wallets', async (_req: Request, res: Response) => {
 });
 
 app.post('/api/wallets', validate(schemas.WalletSchema), async (req: Request, res: Response) => {
-  const { id, name, icon, currency } = req.body;
+  const { id, name, icon, currency, initialBalance, updatedAt, isDeleted } = req.body;
   await db.insert(schema.wallets).values({ 
     id: id as string, 
     name: name as string, 
     icon: icon as string, 
-    currency: currency as string 
+    currency: currency as string,
+    initialBalance: Number(initialBalance),
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
   });
-  res.status(201).json({ id, name, icon, currency });
+  res.status(201).json({ id, name, icon, currency, initialBalance, updatedAt, isDeleted });
 });
 
 // Routes API Transactions
@@ -70,6 +75,7 @@ app.get('/api/transactions', async (_req: Request, res: Response) => {
   try {
     const transactions = await db.select()
       .from(schema.transactions)
+      .where(eq(schema.transactions.isDeleted, false))
       .orderBy(desc(schema.transactions.date));
       
     const formattedTransactions = transactions.map(t => ({
@@ -85,7 +91,7 @@ app.get('/api/transactions', async (_req: Request, res: Response) => {
 
 app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: Request, res: Response) => {
   console.log('Incoming transaction request:', req.body);
-  const { id, description, amount, category, subCategory, tags, type, walletId, date } = req.body;
+  const { id, description, amount, category, subCategory, tags, type, walletId, fromWalletId, date, updatedAt, isDeleted } = req.body;
   const tagsStr = tags ? JSON.stringify(tags) : null;
   
   await db.insert(schema.transactions).values({ 
@@ -95,13 +101,16 @@ app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: R
     category: category as string, 
     subCategory: subCategory as string | null, 
     tags: tagsStr, 
-    type: type as "income" | "expense", 
+    type: type as "income" | "expense" | "transfer", 
     walletId: walletId as string, 
-    date: date as string 
+    fromWalletId: (fromWalletId as string) || null,
+    date: date as string,
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
   });
   
   console.log('Transaction created successfully:', id);
-  res.status(201).json({ id, description, amount, category, subCategory, tags, type, walletId, date });
+  res.status(201).json({ id, description, amount, category, subCategory, tags, type, walletId, fromWalletId, date, updatedAt, isDeleted });
 });
 
 app.delete('/api/transactions/:id', async (req: Request, res: Response) => {
@@ -128,7 +137,9 @@ app.delete('/api/transactions', async (_req: Request, res: Response) => {
 // Routes API Savings
 app.get('/api/savings', async (_req: Request, res: Response) => {
   try {
-    const allSavings = await db.select().from(schema.savings);
+    const allSavings = await db.select()
+      .from(schema.savings)
+      .where(eq(schema.savings.isDeleted, false));
     res.json(allSavings);
   } catch (error) {
     console.error('Error fetching savings:', error);
@@ -137,31 +148,34 @@ app.get('/api/savings', async (_req: Request, res: Response) => {
 });
 
 app.post('/api/savings', validate(schemas.SavingsSchema), async (req: Request, res: Response) => {
-  const { id, name, target, current, currency, deadline } = req.body;
+  const { id, name, target, current, currency, deadline, updatedAt, isDeleted } = req.body;
   await db.insert(schema.savings).values({ 
     id: id as string, 
     name: name as string, 
     target: Number(target), 
     current: Number(current), 
     currency: currency as string, 
-    deadline: deadline as string | null 
+    deadline: deadline as string | null,
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
   });
-  res.status(201).json({ id, name, target, current, currency, deadline });
+  res.status(201).json({ id, name, target, current, currency, deadline, updatedAt, isDeleted });
 });
 
 app.put('/api/savings/:id', validate(schemas.SavingsSchema), async (req: Request, res: Response) => {
   const id = req.params.id as string;
-  const { name, target, current, currency, deadline } = req.body;
+  const { name, target, current, currency, deadline, updatedAt } = req.body;
   await db.update(schema.savings)
     .set({ 
       name: name as string, 
       target: Number(target), 
       current: Number(current), 
       currency: currency as string, 
-      deadline: deadline as string | null 
+      deadline: deadline as string | null,
+      updatedAt: updatedAt as string
     })
     .where(eq(schema.savings.id, id));
-  res.json({ id, name, target, current, currency, deadline });
+  res.json({ id, name, target, current, currency, deadline, updatedAt });
 });
 
 app.delete('/api/savings/:id', async (req: Request, res: Response) => {
@@ -178,7 +192,9 @@ app.delete('/api/savings/:id', async (req: Request, res: Response) => {
 // Routes API Debts
 app.get('/api/debts', async (_req: Request, res: Response) => {
   try {
-    const allDebts = await db.select().from(schema.debts);
+    const allDebts = await db.select()
+      .from(schema.debts)
+      .where(eq(schema.debts.isDeleted, false));
     res.json(allDebts);
   } catch (error) {
     console.error('Error fetching debts:', error);
@@ -187,7 +203,7 @@ app.get('/api/debts', async (_req: Request, res: Response) => {
 });
 
 app.post('/api/debts', validate(schemas.DebtSchema), async (req: Request, res: Response) => {
-  const { id, title, amount, remaining, currency, dueDate, isPaid } = req.body;
+  const { id, title, amount, remaining, currency, dueDate, isPaid, updatedAt, isDeleted } = req.body;
   await db.insert(schema.debts).values({ 
     id: id as string, 
     title: title as string, 
@@ -195,14 +211,16 @@ app.post('/api/debts', validate(schemas.DebtSchema), async (req: Request, res: R
     remaining: Number(remaining), 
     currency: currency as string, 
     dueDate: dueDate as string | null, 
-    isPaid: !!isPaid 
+    isPaid: !!isPaid,
+    updatedAt: updatedAt as string,
+    isDeleted: !!isDeleted
   });
-  res.status(201).json({ id, title, amount, remaining, currency, dueDate, isPaid });
+  res.status(201).json({ id, title, amount, remaining, currency, dueDate, isPaid, updatedAt, isDeleted });
 });
 
 app.put('/api/debts/:id', validate(schemas.DebtSchema), async (req: Request, res: Response) => {
   const id = req.params.id as string;
-  const { title, amount, remaining, currency, dueDate, isPaid } = req.body;
+  const { title, amount, remaining, currency, dueDate, isPaid, updatedAt } = req.body;
   await db.update(schema.debts)
     .set({ 
       title: title as string, 
@@ -210,10 +228,11 @@ app.put('/api/debts/:id', validate(schemas.DebtSchema), async (req: Request, res
       remaining: Number(remaining), 
       currency: currency as string, 
       dueDate: dueDate as string | null, 
-      isPaid: !!isPaid 
+      isPaid: !!isPaid,
+      updatedAt: updatedAt as string
     })
     .where(eq(schema.debts.id, id));
-  res.json({ id, title, amount, remaining, currency, dueDate, isPaid });
+  res.json({ id, title, amount, remaining, currency, dueDate, isPaid, updatedAt });
 });
 
 app.delete('/api/debts/:id', async (req: Request, res: Response) => {

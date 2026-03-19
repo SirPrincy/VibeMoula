@@ -5,6 +5,9 @@ export const wallets = sqliteTable('wallets', {
   name: text('name').notNull(),
   icon: text('icon').notNull(),
   currency: text('currency').notNull(),
+  initialBalance: real('initialBalance').notNull().default(0),
+  updatedAt: text('updatedAt').notNull(),
+  isDeleted: integer('isDeleted', { mode: 'boolean' }).notNull().default(false),
 });
 
 export const transactions = sqliteTable('transactions', {
@@ -14,9 +17,12 @@ export const transactions = sqliteTable('transactions', {
   category: text('category').notNull(),
   subCategory: text('subCategory'),
   tags: text('tags'), // Stored as JSON string
-  type: text('type', { enum: ['income', 'expense'] }).notNull(),
+  type: text('type', { enum: ['income', 'expense', 'transfer'] }).notNull(),
   walletId: text('walletId').notNull().references(() => wallets.id),
+  fromWalletId: text('fromWalletId').references(() => wallets.id), // For transfers
   date: text('date').notNull(),
+  updatedAt: text('updatedAt').notNull(),
+  isDeleted: integer('isDeleted', { mode: 'boolean' }).notNull().default(false),
 });
 
 export const savings = sqliteTable('savings', {
@@ -26,6 +32,8 @@ export const savings = sqliteTable('savings', {
   current: real('current').notNull(),
   currency: text('currency').notNull(),
   deadline: text('deadline'),
+  updatedAt: text('updatedAt').notNull(),
+  isDeleted: integer('isDeleted', { mode: 'boolean' }).notNull().default(false),
 });
 
 export const debts = sqliteTable('debts', {
@@ -36,4 +44,6 @@ export const debts = sqliteTable('debts', {
   currency: text('currency').notNull(),
   dueDate: text('dueDate'),
   isPaid: integer('isPaid', { mode: 'boolean' }).notNull().default(false),
+  updatedAt: text('updatedAt').notNull(),
+  isDeleted: integer('isDeleted', { mode: 'boolean' }).notNull().default(false),
 });

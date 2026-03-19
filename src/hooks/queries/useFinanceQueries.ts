@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeApi } from '../../api/financeApi';
-import type { Wallet, Transaction, SavingsGoal, Debt } from '../../types';
+import type { Wallet, Transaction, SavingsGoal, Debt, BaseEntity } from '../../types';
 
 export const useWallets = () => {
   const queryClient = useQueryClient();
@@ -11,7 +11,27 @@ export const useWallets = () => {
 
   const addWalletMutation = useMutation({
     mutationFn: financeApi.createWallet,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallets'] }),
+    onMutate: async (newWallet) => {
+      await queryClient.cancelQueries({ queryKey: ['wallets'] });
+      const previousWallets = queryClient.getQueryData<Wallet[]>(['wallets']);
+      queryClient.setQueryData<Wallet[]>(['wallets'], (old = []) => [
+        ...old,
+        { 
+          ...newWallet, 
+          id: crypto.randomUUID(), 
+          initialBalance: newWallet.initialBalance || 0,
+          updatedAt: new Date().toISOString(),
+          isDeleted: false 
+        } as Wallet,
+      ]);
+      return { previousWallets };
+    },
+    onError: (_err, _newWallet, context) => {
+      queryClient.setQueryData(['wallets'], context?.previousWallets);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+    },
   });
 
   return { ...query, addWallet: addWalletMutation.mutate };
@@ -26,12 +46,45 @@ export const useTransactions = () => {
 
   const addTransactionMutation = useMutation({
     mutationFn: financeApi.createTransaction,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+    onMutate: async (newTransaction) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+      queryClient.setQueryData<Transaction[]>(['transactions'], (old = []) => [
+        { 
+          ...newTransaction, 
+          id: crypto.randomUUID(), 
+          date: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isDeleted: false 
+        } as Transaction,
+        ...old,
+      ]);
+      return { previousTransactions };
+    },
+    onError: (_err, _newTransaction, context) => {
+      queryClient.setQueryData(['transactions'], context?.previousTransactions);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
   });
 
   const deleteTransactionMutation = useMutation({
     mutationFn: financeApi.deleteTransaction,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+      queryClient.setQueryData<Transaction[]>(['transactions'], (old = []) => 
+        old.filter(t => t.id !== id)
+      );
+      return { previousTransactions };
+    },
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['transactions'], context?.previousTransactions);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
   });
 
   return { 
@@ -50,17 +103,57 @@ export const useSavings = () => {
 
   const addSavingsMutation = useMutation({
     mutationFn: financeApi.createSavings,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['savings'] }),
+    onMutate: async (newGoal) => {
+      await queryClient.cancelQueries({ queryKey: ['savings'] });
+      const previousSavings = queryClient.getQueryData<SavingsGoal[]>(['savings']);
+      queryClient.setQueryData<SavingsGoal[]>(['savings'], (old = []) => [
+        ...old,
+        { ...newGoal, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as SavingsGoal,
+      ]);
+      return { previousSavings };
+    },
+    onError: (_err, _newGoal, context) => {
+      queryClient.setQueryData(['savings'], context?.previousSavings);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['savings'] });
+    },
   });
 
   const updateSavingsMutation = useMutation({
     mutationFn: financeApi.updateSavings,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['savings'] }),
+    onMutate: async (updatedGoal) => {
+      await queryClient.cancelQueries({ queryKey: ['savings'] });
+      const previousSavings = queryClient.getQueryData<SavingsGoal[]>(['savings']);
+      queryClient.setQueryData<SavingsGoal[]>(['savings'], (old = []) => 
+        old.map(g => g.id === updatedGoal.id ? { ...updatedGoal, updatedAt: new Date().toISOString() } : g)
+      );
+      return { previousSavings };
+    },
+    onError: (_err, _updatedGoal, context) => {
+      queryClient.setQueryData(['savings'], context?.previousSavings);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['savings'] });
+    },
   });
 
   const deleteSavingsMutation = useMutation({
     mutationFn: financeApi.deleteSavings,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['savings'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['savings'] });
+      const previousSavings = queryClient.getQueryData<SavingsGoal[]>(['savings']);
+      queryClient.setQueryData<SavingsGoal[]>(['savings'], (old = []) => 
+        old.filter(g => g.id !== id)
+      );
+      return { previousSavings };
+    },
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['savings'], context?.previousSavings);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['savings'] });
+    },
   });
 
   return { 
@@ -80,17 +173,57 @@ export const useDebts = () => {
 
   const addDebtMutation = useMutation({
     mutationFn: financeApi.createDebt,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['debts'] }),
+    onMutate: async (newDebt) => {
+      await queryClient.cancelQueries({ queryKey: ['debts'] });
+      const previousDebts = queryClient.getQueryData<Debt[]>(['debts']);
+      queryClient.setQueryData<Debt[]>(['debts'], (old = []) => [
+        ...old,
+        { ...newDebt, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as Debt,
+      ]);
+      return { previousDebts };
+    },
+    onError: (_err, _newDebt, context) => {
+      queryClient.setQueryData(['debts'], context?.previousDebts);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
+    },
   });
 
   const updateDebtMutation = useMutation({
     mutationFn: financeApi.updateDebt,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['debts'] }),
+    onMutate: async (updatedDebt) => {
+      await queryClient.cancelQueries({ queryKey: ['debts'] });
+      const previousDebts = queryClient.getQueryData<Debt[]>(['debts']);
+      queryClient.setQueryData<Debt[]>(['debts'], (old = []) => 
+        old.map(d => d.id === updatedDebt.id ? { ...updatedDebt, updatedAt: new Date().toISOString() } : d)
+      );
+      return { previousDebts };
+    },
+    onError: (_err, _updatedDebt, context) => {
+      queryClient.setQueryData(['debts'], context?.previousDebts);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
+    },
   });
 
   const deleteDebtMutation = useMutation({
     mutationFn: financeApi.deleteDebt,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['debts'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['debts'] });
+      const previousDebts = queryClient.getQueryData<Debt[]>(['debts']);
+      queryClient.setQueryData<Debt[]>(['debts'], (old = []) => 
+        old.filter(d => d.id !== id)
+      );
+      return { previousDebts };
+    },
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['debts'], context?.previousDebts);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
+    },
   });
 
   return { 

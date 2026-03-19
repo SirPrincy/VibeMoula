@@ -1,19 +1,24 @@
 export type Category = 'food' | 'shopping' | 'transport' | 'home' | 'salary' | 'leisure' | 'other';
 
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'transfer';
 
 export const SUPPORTED_CURRENCIES = ['FCFA', 'USD', 'EUR', 'Ar', 'CAD', 'CHF', 'GBP'] as const;
 export type Currency = typeof SUPPORTED_CURRENCIES[number];
 
-export interface Wallet {
+export interface BaseEntity {
   id: string;
+  updatedAt: string;
+  isDeleted: boolean;
+}
+
+export interface Wallet extends BaseEntity {
   name: string;
   icon: string;
   currency: string;
+  initialBalance: number;
 }
 
-export interface Transaction {
-  id: string;
+export interface Transaction extends BaseEntity {
   description: string;
   amount: number;
   category: Category;
@@ -21,6 +26,7 @@ export interface Transaction {
   tags?: string[];
   type: TransactionType;
   walletId: string;
+  fromWalletId?: string; // For transfers
   date: string;
 }
 
@@ -31,8 +37,7 @@ export interface FinanceState {
   totalExpenses: number;
 }
 
-export interface SavingsGoal {
-  id: string;
+export interface SavingsGoal extends BaseEntity {
   name: string;
   target: number;
   current: number;
@@ -40,8 +45,7 @@ export interface SavingsGoal {
   deadline?: string;
 }
 
-export interface Debt {
-  id: string;
+export interface Debt extends BaseEntity {
   title: string;
   amount: number;
   remaining: number;
