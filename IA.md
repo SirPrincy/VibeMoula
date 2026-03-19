@@ -9,8 +9,9 @@ Une application de gestion financière ultra-minimaliste, esthétique et perform
 
 ## Stack Technique (V9 - Drizzle & TypeScript)
 - **Frontend** : React 18 + Vite + TypeScript.
-- **Backend/API** : Node.js + Express + **TypeScript (via `tsx`)**.
+- **Backend/API** : Node.js + Express + **TypeScript (via `tsx`)**. Sécurisé avec **Helmet**, **Rate Limiting** et **Zod validation** sur tous les endpoints critiques.
 - **Base de données** : SQLite géré par **Drizzle ORM**.
+- **Sécurité** : Protection par **API Key** pour les actions sensibles (reset), validation stricte des schémas d'entrée.
 - **Communication** : Centralisation du state dans `/src/hooks/useFinance.ts` qui communique avec le backend via fetch.
 
 ## Structure Clé
@@ -25,9 +26,7 @@ Une application de gestion financière ultra-minimaliste, esthétique et perform
 - **Data Management** : "Zone de Danger" dans les réglages permettant un reset complet de la base de données.
 - **Responsive Navigation** : Navbar flottante (Mobile) et Sidebar latérale (Desktop).
 
-## Roadmap Prochaine
 1. **TanStack Query** : Migrer les fetchs du frontend vers React Query pour une synchro de données plus fluide.
 2. **Visualisation (Pie Chart)** : Répartition par catégories sur le Dashboard.
-3. **Zod Validation** : Partager les schémas de validation entre le frontend et le backend.
-4. **Recherche & Filtres** : Recherche textuelle dans l'historique des transactions.
+3. **Recherche & Filtres** : Recherche textuelle dans l'historique des transactions.
 

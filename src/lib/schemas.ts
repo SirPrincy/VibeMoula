@@ -18,11 +18,11 @@ export const SUB_CATEGORIES: Record<Category, string[]> = {
 
 // Transaction schema
 export const transactionSchema = z.object({
-    amount: z.number({ required_error: 'Le montant est requis' }).positive('Le montant doit être positif'),
-    walletId: z.string({ required_error: 'Le wallet est requis' }).min(1, 'Sélectionnez un wallet'),
-    category: z.enum(CATEGORIES, { required_error: 'La catégorie est requise' }),
-    subCategory: z.string({ required_error: 'La sous-catégorie est requise' }).min(1, 'Sélectionnez une sous-catégorie'),
-    type: z.enum(TRANSACTION_TYPES, { required_error: 'Le type est requis' }),
+    amount: z.number({ message: 'Le montant est requis' }).positive('Le montant doit être positif'),
+    walletId: z.string({ message: 'Le wallet est requis' }).min(1, 'Sélectionnez un wallet'),
+    category: z.enum([...CATEGORIES], { message: 'La catégorie est requise' }),
+    subCategory: z.string({ message: 'La sous-catégorie est requise' }).min(1, 'Sélectionnez une sous-catégorie'),
+    type: z.enum([...TRANSACTION_TYPES], { message: 'Le type est requis' }),
     tags: z.string().optional(),
     description: z.string().optional(),
 });
@@ -31,9 +31,9 @@ export type TransactionFormData = z.infer<typeof transactionSchema>;
 
 // Wallet schema
 export const walletSchema = z.object({
-    name: z.string({ required_error: 'Le nom est requis' }).min(1, 'Le nom est requis'),
+    name: z.string({ message: 'Le nom est requis' }).min(1, 'Le nom est requis'),
     icon: z.string().default('💰'),
-    currency: z.string({ required_error: 'La devise est requise' }).min(1, 'La devise est requise'),
+    currency: z.string({ message: 'La devise est requise' }).min(1, 'La devise est requise'),
 });
 
 export type WalletFormData = z.infer<typeof walletSchema>;

@@ -9,6 +9,7 @@
 - **Finance Pro** : Liste de transactions complète avec badges de wallets et catégories.
 - **Design Adaptatif** : Sidebar latérale sur Desktop et Navigation simplifiée avec bouton "+" central sur Mobile.
 - **Local-First** : Vos données sont stockées localement dans une base de données SQLite.
+- **Sécurisé** : Protection contre les attaques communes (Helmet), limitation du débit (Rate Limiting) et validation stricte (Zod).
 
 ## 🛠️ Stack Technique
 - **Frontend** : React 18 + Vite + TypeScript.
