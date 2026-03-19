@@ -3,7 +3,8 @@ import { financeApi } from '../../api/financeApi';
 import type { 
   Wallet, Transaction, SavingsGoal, Debt, 
   Category, RecurringTemplate, Budget,
-  CreateTransactionInput
+  CreateTransactionInput, CreateWalletInput, CreateCategoryInput,
+  CreateSavingsGoalInput, CreateDebtInput, CreateRecurringTemplateInput, CreateBudgetInput
 } from '../../types';
 
 export const useWallets = () => {
@@ -14,7 +15,8 @@ export const useWallets = () => {
   });
 
   const addWalletMutation = useMutation({
-    mutationFn: financeApi.createWallet,
+    mutationFn: (newWallet: CreateWalletInput & { id: string }) => 
+      financeApi.createWallet(newWallet),
     onMutate: async (newWallet) => {
       await queryClient.cancelQueries({ queryKey: ['wallets'] });
       const previousWallets = queryClient.getQueryData<Wallet[]>(['wallets']);
@@ -22,7 +24,6 @@ export const useWallets = () => {
         ...old,
         { 
           ...newWallet, 
-          id: crypto.randomUUID(), 
           initialBalance: newWallet.initialBalance || 0,
           updatedAt: new Date().toISOString(),
           isDeleted: false 
@@ -38,7 +39,12 @@ export const useWallets = () => {
     },
   });
 
-  return { ...query, addWallet: addWalletMutation.mutate };
+  const addWallet = (data: CreateWalletInput) => {
+    const id = crypto.randomUUID();
+    addWalletMutation.mutate({ ...data, id });
+  };
+
+  return { ...query, addWallet };
 };
 
 export const useCategories = () => {
@@ -49,13 +55,14 @@ export const useCategories = () => {
   });
 
   const addCategoryMutation = useMutation({
-    mutationFn: financeApi.createCategory,
+    mutationFn: (newCategory: CreateCategoryInput & { id: string }) =>
+      financeApi.createCategory(newCategory),
     onMutate: async (newCategory) => {
       await queryClient.cancelQueries({ queryKey: ['categories'] });
       const previous = queryClient.getQueryData<Category[]>(['categories']);
       queryClient.setQueryData<Category[]>(['categories'], (old = []) => [
         ...old,
-        { ...newCategory, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as Category,
+        { ...newCategory, updatedAt: new Date().toISOString(), isDeleted: false } as Category,
       ]);
       return { previous };
     },
@@ -67,7 +74,12 @@ export const useCategories = () => {
     },
   });
 
-  return { ...query, addCategory: addCategoryMutation.mutate };
+  const addCategory = (data: CreateCategoryInput) => {
+    const id = crypto.randomUUID();
+    addCategoryMutation.mutate({ ...data, id });
+  };
+
+  return { ...query, addCategory };
 };
 
 export const useTransactions = () => {
@@ -84,10 +96,8 @@ export const useTransactions = () => {
       await queryClient.cancelQueries({ queryKey: ['transactions'] });
       const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
       
-      const id = crypto.randomUUID();
       const tempTransaction: Transaction = { 
         ...newTransaction as any, 
-        id, 
         date: new Date().toISOString(),
         isReconciled: false,
         updatedAt: new Date().toISOString(),
@@ -98,7 +108,7 @@ export const useTransactions = () => {
         tempTransaction,
         ...old,
       ]);
-      return { previousTransactions, id };
+      return { previousTransactions };
     },
     onError: (_err, _newTransaction, context) => {
       queryClient.setQueryData(['transactions'], context?.previousTransactions);
@@ -146,7 +156,8 @@ export const useRecurring = () => {
   });
 
   const addRecurringMutation = useMutation({
-    mutationFn: financeApi.createRecurring,
+    mutationFn: (newTemplate: CreateRecurringTemplateInput & { id: string }) =>
+      financeApi.createRecurring(newTemplate),
     onMutate: async (newTemplate) => {
       await queryClient.cancelQueries({ queryKey: ['recurring'] });
       const previous = queryClient.getQueryData<RecurringTemplate[]>(['recurring']);
@@ -154,7 +165,6 @@ export const useRecurring = () => {
         ...old,
         { 
           ...newTemplate, 
-          id: crypto.randomUUID(), 
           nextRunDate: new Date().toISOString(),
           isActive: true,
           updatedAt: new Date().toISOString(), 
@@ -171,7 +181,12 @@ export const useRecurring = () => {
     },
   });
 
-  return { ...query, addRecurring: addRecurringMutation.mutate };
+  const addRecurring = (data: CreateRecurringTemplateInput) => {
+    const id = crypto.randomUUID();
+    addRecurringMutation.mutate({ ...data, id });
+  };
+
+  return { ...query, addRecurring };
 };
 
 export const useBudgets = () => {
@@ -182,13 +197,14 @@ export const useBudgets = () => {
   });
 
   const addBudgetMutation = useMutation({
-    mutationFn: financeApi.createBudget,
+    mutationFn: (newBudget: CreateBudgetInput & { id: string }) =>
+      financeApi.createBudget(newBudget),
     onMutate: async (newBudget) => {
       await queryClient.cancelQueries({ queryKey: ['budgets'] });
       const previous = queryClient.getQueryData<Budget[]>(['budgets']);
       queryClient.setQueryData<Budget[]>(['budgets'], (old = []) => [
         ...old,
-        { ...newBudget, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as Budget,
+        { ...newBudget, updatedAt: new Date().toISOString(), isDeleted: false } as Budget,
       ]);
       return { previous };
     },
@@ -200,7 +216,12 @@ export const useBudgets = () => {
     },
   });
 
-  return { ...query, addBudget: addBudgetMutation.mutate };
+  const addBudget = (data: CreateBudgetInput) => {
+    const id = crypto.randomUUID();
+    addBudgetMutation.mutate({ ...data, id });
+  };
+
+  return { ...query, addBudget };
 };
 
 export const useSavings = () => {
@@ -211,13 +232,14 @@ export const useSavings = () => {
   });
 
   const addSavingsMutation = useMutation({
-    mutationFn: financeApi.createSavings,
+    mutationFn: (newGoal: CreateSavingsGoalInput & { id: string }) =>
+      financeApi.createSavings(newGoal),
     onMutate: async (newGoal) => {
       await queryClient.cancelQueries({ queryKey: ['savings'] });
       const previousSavings = queryClient.getQueryData<SavingsGoal[]>(['savings']);
       queryClient.setQueryData<SavingsGoal[]>(['savings'], (old = []) => [
         ...old,
-        { ...newGoal, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as SavingsGoal,
+        { ...newGoal, updatedAt: new Date().toISOString(), isDeleted: false } as SavingsGoal,
       ]);
       return { previousSavings };
     },
@@ -265,9 +287,14 @@ export const useSavings = () => {
     },
   });
 
+  const addSavings = (data: CreateSavingsGoalInput) => {
+    const id = crypto.randomUUID();
+    addSavingsMutation.mutate({ ...data, id });
+  };
+
   return { 
     ...query, 
-    addSavings: addSavingsMutation.mutate, 
+    addSavings, 
     updateSavings: updateSavingsMutation.mutate,
     deleteSavings: deleteSavingsMutation.mutate
   };
@@ -281,13 +308,14 @@ export const useDebts = () => {
   });
 
   const addDebtMutation = useMutation({
-    mutationFn: financeApi.createDebt,
+    mutationFn: (newDebt: CreateDebtInput & { id: string }) =>
+      financeApi.createDebt(newDebt),
     onMutate: async (newDebt) => {
       await queryClient.cancelQueries({ queryKey: ['debts'] });
       const previousDebts = queryClient.getQueryData<Debt[]>(['debts']);
       queryClient.setQueryData<Debt[]>(['debts'], (old = []) => [
         ...old,
-        { ...newDebt, id: crypto.randomUUID(), updatedAt: new Date().toISOString(), isDeleted: false } as Debt,
+        { ...newDebt, updatedAt: new Date().toISOString(), isDeleted: false } as Debt,
       ]);
       return { previousDebts };
     },
@@ -335,9 +363,14 @@ export const useDebts = () => {
     },
   });
 
+  const addDebt = (data: CreateDebtInput) => {
+    const id = crypto.randomUUID();
+    addDebtMutation.mutate({ ...data, id });
+  };
+
   return { 
     ...query, 
-    addDebt: addDebtMutation.mutate,
+    addDebt,
     updateDebt: updateDebtMutation.mutate,
     deleteDebt: deleteDebtMutation.mutate
   };

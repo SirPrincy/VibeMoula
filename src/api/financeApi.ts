@@ -9,10 +9,10 @@ import type {
 export const financeApi = {
   // Wallets
   getWallets: () => apiClient.get<Wallet[]>('/wallets'),
-  createWallet: (wallet: CreateWalletInput) => 
+  createWallet: (wallet: CreateWalletInput & { id?: string }) => 
     apiClient.post<Wallet>('/wallets', { 
       ...wallet, 
-      id: crypto.randomUUID(),
+      id: wallet.id || crypto.randomUUID(),
       initialBalance: wallet.initialBalance || 0,
       updatedAt: new Date().toISOString(),
       isDeleted: false,
@@ -20,10 +20,10 @@ export const financeApi = {
 
   // Categories
   getCategories: () => apiClient.get<Category[]>('/categories'),
-  createCategory: (category: CreateCategoryInput) =>
+  createCategory: (category: CreateCategoryInput & { id?: string }) =>
     apiClient.post<Category>('/categories', {
       ...category,
-      id: crypto.randomUUID(),
+      id: category.id || crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),
@@ -44,10 +44,10 @@ export const financeApi = {
 
   // Recurring
   getRecurring: () => apiClient.get<RecurringTemplate[]>('/recurring'),
-  createRecurring: (template: CreateRecurringTemplateInput) =>
+  createRecurring: (template: CreateRecurringTemplateInput & { id?: string }) =>
     apiClient.post<RecurringTemplate>('/recurring', {
       ...template,
-      id: crypto.randomUUID(),
+      id: template.id || crypto.randomUUID(),
       nextRunDate: new Date().toISOString(), // Initial next run
       isActive: true,
       updatedAt: new Date().toISOString(),
@@ -61,20 +61,20 @@ export const financeApi = {
 
   // Budgets
   getBudgets: () => apiClient.get<Budget[]>('/budgets'),
-  createBudget: (budget: CreateBudgetInput) =>
+  createBudget: (budget: CreateBudgetInput & { id?: string }) =>
     apiClient.post<Budget>('/budgets', {
       ...budget,
-      id: crypto.randomUUID(),
+      id: budget.id || crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),
 
   // Savings
   getSavings: () => apiClient.get<SavingsGoal[]>('/savings'),
-  createSavings: (goal: CreateSavingsGoalInput) => 
+  createSavings: (goal: CreateSavingsGoalInput & { id?: string }) => 
     apiClient.post<SavingsGoal>('/savings', { 
       ...goal, 
-      id: crypto.randomUUID(),
+      id: goal.id || crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),
@@ -89,10 +89,10 @@ export const financeApi = {
     const data = await apiClient.get<Debt[]>('/debts');
     return data.map(d => ({ ...d, isPaid: !!d.isPaid }));
   },
-  createDebt: (debt: CreateDebtInput) => 
+  createDebt: (debt: CreateDebtInput & { id?: string }) => 
     apiClient.post<Debt>('/debts', { 
       ...debt, 
-      id: crypto.randomUUID(),
+      id: debt.id || crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),

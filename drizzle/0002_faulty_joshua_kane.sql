@@ -55,7 +55,7 @@ CREATE TABLE `__new_transactions` (
 	FOREIGN KEY (`walletId`) REFERENCES `wallets`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-INSERT INTO `__new_transactions`("id", "description", "amount", "categoryId", "category", "subCategory", "tags", "type", "walletId", "fromWalletId", "date", "isReconciled", "updatedAt", "isDeleted") SELECT "id", "description", "amount", "categoryId", "category", "subCategory", "tags", "type", "walletId", "fromWalletId", "date", "isReconciled", "updatedAt", "isDeleted" FROM `transactions`;--> statement-breakpoint
+INSERT INTO `__new_transactions`("id", "description", "amount", "categoryId", "category", "subCategory", "tags", "type", "walletId", "fromWalletId", "date", "isReconciled", "updatedAt", "isDeleted") SELECT "id", "description", "amount", NULL, "category", "subCategory", "tags", "type", "walletId", "fromWalletId", "date", 0, "updatedAt", "isDeleted" FROM `transactions`;--> statement-breakpoint
 DROP TABLE `transactions`;--> statement-breakpoint
 ALTER TABLE `__new_transactions` RENAME TO `transactions`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint

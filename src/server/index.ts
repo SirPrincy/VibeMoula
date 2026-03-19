@@ -11,6 +11,7 @@ import { validate } from './middleware/validate.ts';
 import { checkApiKey } from './middleware/auth.ts';
 import { errorHandler } from './middleware/error.ts';
 import * as schemas from './schemas.ts';
+import { CATEGORY_DEFINITIONS } from '../lib/categories.ts';
 
 const app = express();
 const port = 3001;
@@ -42,6 +43,23 @@ const db = drizzle(sqlite, { schema });
 // Appliquer les migrations au démarrage
 migrate(db, { migrationsFolder: './drizzle' });
 console.log('Migrations applied successfully');
+
+// Seed Categories
+const seedCategories = async () => {
+  for (const cat of CATEGORY_DEFINITIONS) {
+    await db.insert(schema.categories).values({
+      id: cat.id,
+      name: cat.name,
+      icon: cat.icon,
+      color: cat.color,
+      type: cat.type,
+      updatedAt: new Date().toISOString(),
+      isDeleted: false
+    }).onConflictDoNothing();
+  }
+  console.log('Categories seeded/checked');
+};
+seedCategories().catch(err => console.error('Seeding failed:', err));
 
 // Routes API Wallets
 app.get('/api/wallets', async (_req: Request, res: Response) => {
