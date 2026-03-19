@@ -141,9 +141,28 @@ export const useTransactions = () => {
     },
   });
 
+  const updateTransactionMutation = useMutation({
+    mutationFn: financeApi.updateTransaction,
+    onMutate: async (updatedTransaction) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+      queryClient.setQueryData<Transaction[]>(['transactions'], (old = []) => 
+        old.map(t => t.id === updatedTransaction.id ? { ...updatedTransaction, updatedAt: new Date().toISOString() } : t)
+      );
+      return { previousTransactions };
+    },
+    onError: (_err, _updatedTransaction, context) => {
+      queryClient.setQueryData(['transactions'], context?.previousTransactions);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+
   return { 
     ...query, 
     addTransaction,
+    updateTransaction: updateTransactionMutation.mutate,
     deleteTransaction: deleteTransactionMutation.mutate
   };
 };

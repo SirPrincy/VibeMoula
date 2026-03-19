@@ -28,7 +28,7 @@ export const transactionSchema = z.object({
     subCategory: z.string().optional(),
     type: z.enum(TRANSACTION_TYPES, { message: 'Le type est requis' }),
     tags: z.array(z.string()).default([]),
-    description: z.string().min(1, 'La description est requise'),
+    description: z.string().optional(),
     date: z.string().default(() => new Date().toISOString()),
     isReconciled: z.boolean().default(false),
 });

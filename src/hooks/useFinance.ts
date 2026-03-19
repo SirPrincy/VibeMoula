@@ -14,7 +14,7 @@ export const useFinance = () => {
   
   // New granular hooks
   const { data: wallets = [], addWallet } = useWallets();
-  const { data: transactions = [], addTransaction, deleteTransaction } = useTransactions();
+  const { data: transactions = [], addTransaction, deleteTransaction, updateTransaction } = useTransactions();
   const { data: savings = [], addSavings, updateSavings, deleteSavings } = useSavings();
   const { data: debts = [], addDebt, updateDebt, deleteDebt } = useDebts();
   const { data: categories = [], addCategory } = useCategories();
@@ -52,6 +52,7 @@ export const useFinance = () => {
     totalExpenses: stats.totalExpenses,
     totalBalance: stats.totalBalance,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     addWallet,
     addCategory,

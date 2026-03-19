@@ -7,9 +7,10 @@ interface ItemProps {
   transaction: Transaction;
   wallet?: Wallet;
   category?: Category;
+  onClick?: (tx: Transaction) => void;
 }
 
-const TransactionItem: React.FC<ItemProps> = ({ transaction, wallet, category }) => {
+const TransactionItem: React.FC<ItemProps> = ({ transaction, wallet, category, onClick }) => {
   const isIncome = transaction.type === 'income';
 
   return (
@@ -18,6 +19,7 @@ const TransactionItem: React.FC<ItemProps> = ({ transaction, wallet, category })
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20 }}
+      onClick={() => onClick?.(transaction)}
       style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -26,7 +28,8 @@ const TransactionItem: React.FC<ItemProps> = ({ transaction, wallet, category })
         background: 'var(--card-bg)',
         border: '1px solid var(--border)',
         borderRadius: '16px',
-        opacity: transaction.isDeleted ? 0.5 : 1
+        opacity: transaction.isDeleted ? 0.5 : 1,
+        cursor: onClick ? 'pointer' : 'default'
       }}
     >
       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -76,9 +79,10 @@ interface ListProps {
   transactions: Transaction[];
   wallets: Wallet[];
   categories: Category[];
+  onEditTransaction?: (tx: Transaction) => void;
 }
 
-const TransactionList: React.FC<ListProps> = ({ transactions, wallets, categories }) => {
+const TransactionList: React.FC<ListProps> = ({ transactions, wallets, categories, onEditTransaction }) => {
   const activeTransactions = transactions.filter(t => !t.isDeleted);
 
   return (
@@ -94,6 +98,7 @@ const TransactionList: React.FC<ListProps> = ({ transactions, wallets, categorie
               transaction={t} 
               wallet={wallets.find(w => w.id === t.walletId)}
               category={categories.find(c => c.id === t.categoryId)}
+              onClick={onEditTransaction}
             />
           ))}
         </AnimatePresence>

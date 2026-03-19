@@ -5,7 +5,7 @@ import { recurringService } from './services/recurringService';
 import TransactionModal from './components/TransactionModal';
 import Navbar from './components/Navbar';
 import type { Tab } from './components/Navbar';
-import type { Currency } from './types';
+import type { Currency, Transaction } from './types';
 import FinanceView from './components/FinanceView';
 import DebtView from './components/DebtView';
 import DashboardView from './components/DashboardView';
@@ -23,6 +23,7 @@ function App() {
     dashboardCurrency,
     setDashboardCurrency,
     addTransaction, 
+    updateTransaction,
     addWallet,
     addCategory,
     addBudget,
@@ -39,8 +40,22 @@ function App() {
   }, [transactions]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+
+  const handleOpenTransactionModal = (tx?: Transaction) => {
+    setEditingTransaction(tx || null);
+    setIsModalOpen(true);
+  };
+
+  const handleTransactionSubmit = (data: any) => {
+    if (editingTransaction) {
+      updateTransaction({ ...data, id: editingTransaction.id } as Transaction);
+    } else {
+      addTransaction(data);
+    }
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -89,6 +104,7 @@ function App() {
                 transactions={transactions}
                 wallets={wallets}
                 currency={dashboardCurrency as Currency}
+                onEditTransaction={handleOpenTransactionModal}
               />
             )}
 
@@ -131,10 +147,11 @@ function App() {
 
         <TransactionModal 
           isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          onSubmit={addTransaction} 
+          onClose={() => { setIsModalOpen(false); setEditingTransaction(null); }} 
+          onSubmit={handleTransactionSubmit} 
           wallets={wallets}
           recentlyUsedCategoryIds={recentlyUsedCategoryIds}
+          initialData={editingTransaction}
         />
       </div>
     </div>

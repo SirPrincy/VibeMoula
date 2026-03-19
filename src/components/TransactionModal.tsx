@@ -4,13 +4,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle } from 'lucide-react';
 import { transactionSchema, type TransactionFormData } from '../lib/schemas';
-import type { Wallet, CreateTransactionInput } from '../types';
+import type { Wallet, CreateTransactionInput, Transaction } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { cn } from '@/lib/utils';
 import CategoryGrid from './CategoryGrid';
 import { getCategoryById } from '@/lib/categories';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from './ui/dialog';
+import { useState } from 'react';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +20,7 @@ interface Props {
   onSubmit: (data: CreateTransactionInput) => void;
   wallets: Wallet[];
   recentlyUsedCategoryIds?: string[];
+  initialData?: Transaction | null;
 }
 
 const TransactionModal: React.FC<Props> = ({ 
@@ -25,8 +28,11 @@ const TransactionModal: React.FC<Props> = ({
   onClose, 
   onSubmit, 
   wallets, 
-  recentlyUsedCategoryIds = []
+  recentlyUsedCategoryIds = [],
+  initialData
 }) => {
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -41,7 +47,7 @@ const TransactionModal: React.FC<Props> = ({
       amount: 0,
       description: '',
       isReconciled: false,
-      date: new Date().toISOString(),
+      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
       tags: [],
     },
   });
@@ -51,11 +57,26 @@ const TransactionModal: React.FC<Props> = ({
 
   React.useEffect(() => {
     if (isOpen) {
-      if (wallets.length > 0) setValue('walletId', wallets[0].id);
+      if (initialData) {
+        reset({
+          ...initialData,
+          date: initialData.date.substring(0, 16),
+        } as any);
+      } else {
+        reset({
+          type: 'expense',
+          amount: 0,
+          description: '',
+          isReconciled: false,
+          date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+          tags: [],
+        });
+        if (wallets.length > 0) setValue('walletId', wallets[0].id);
+      }
     } else {
       reset();
     }
-  }, [isOpen, wallets, setValue, reset]);
+  }, [isOpen, initialData, wallets, setValue, reset]);
 
   const onFormSubmit = (data: TransactionFormData) => {
     // Merge category name if it was selected via ID
@@ -65,12 +86,16 @@ const TransactionModal: React.FC<Props> = ({
       if (catDef) finalCategory = catDef.name;
     }
 
-    onSubmit({
+    const submitData = {
       ...data,
       category: finalCategory,
       amount: data.amount,
+      description: data.description || '',
       tags: data.tags || [],
-    } as CreateTransactionInput);
+      date: new Date(data.date).toISOString(), // Convert local datetime back to UTC ISO for storage
+    };
+
+    onSubmit(submitData as CreateTransactionInput);
     onClose();
   };
 
@@ -94,7 +119,9 @@ const TransactionModal: React.FC<Props> = ({
             <div className="flex h-[85vh] flex-col lg:h-auto lg:max-h-[90vh]">
               {/* Header */}
               <div className="flex items-center justify-between p-6 pb-2">
-                <h2 className="text-xl font-black tracking-tight text-white">Nouvelle Vibe</h2>
+                <h2 className="text-xl font-black tracking-tight text-white">
+                  {initialData ? 'Modifier la Vibe' : 'Nouvelle Vibe'}
+                </h2>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -130,7 +157,8 @@ const TransactionModal: React.FC<Props> = ({
                   {/* Amount Input */}
                   <div className="relative">
                     <input
-                      {...register('amount', { valueAsNumber: true })}
+                      value={watch('amount') || ''}
+                      onChange={(e) => setValue('amount', parseFloat(e.target.value) || 0, { shouldValidate: true })}
                       type="number"
                       step="0.01"
                       placeholder="0.00"
@@ -160,27 +188,60 @@ const TransactionModal: React.FC<Props> = ({
 
                     <div className="space-y-3">
                       <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Catégorie</Label>
-                      <CategoryGrid 
-                        type={type as any}
-                        selectedCategoryId={watch('categoryId')}
-                        selectedSubCategoryId={watch('subCategory')}
-                        recentlyUsedIds={recentlyUsedCategoryIds}
-                        onSelect={(cat, sub) => {
-                          setValue('categoryId', cat.id);
-                          setValue('category', cat.name);
-                          setValue('subCategory', sub?.name || '');
-                        }}
-                      />
+                      <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                        <DialogTrigger asChild>
+                          <button 
+                            type="button" 
+                            className="w-full text-left rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white outline-none focus:border-white/20 focus:bg-white/10"
+                          >
+                            {watch('categoryId') ? `${watch('category')} ${watch('subCategory') ? `> ${watch('subCategory')}` : ''}` : 'Sélectionner une catégorie'}
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="max-h-[85vh] overflow-y-auto bg-[#161618] border-white/10 p-6 sm:max-w-[425px]">
+                          <DialogTitle className="text-white mb-4">Choisir une catégorie</DialogTitle>
+                          <CategoryGrid 
+                            type={type as any}
+                            selectedCategoryId={watch('categoryId')}
+                            selectedSubCategoryId={watch('subCategory')}
+                            recentlyUsedIds={recentlyUsedCategoryIds}
+                            onSelect={(cat, sub) => {
+                              setValue('categoryId', cat.id);
+                              setValue('category', cat.name);
+                              setValue('subCategory', sub?.name || '');
+                              setIsCategoryOpen(false);
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
                     </div>
 
                     <div className="space-y-3">
-                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Description</Label>
+                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Date & Heure</Label>
+                      <Input 
+                        {...register('date')}
+                        type="datetime-local"
+                        className="h-14 rounded-2xl border-white/10 bg-white/5 px-5 font-bold text-white focus:bg-white/10 focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
+                      />
+                      {errors.date && <p className="text-[10px] font-bold text-red-500">{errors.date.message}</p>}
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Description (Optionnel)</Label>
                       <Input 
                         {...register('description')}
                         placeholder="Café, Loyer, Bonus..." 
                         className="h-14 rounded-2xl border-white/10 bg-white/5 px-5 font-bold text-white placeholder:text-white/20 focus:bg-white/10 focus-visible:ring-0"
                       />
                       {errors.description && <p className="text-[10px] font-bold text-red-500">{errors.description.message}</p>}
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black tracking-widest text-white/40 uppercase">Tags (Prochainement)</Label>
+                      <Input 
+                        disabled
+                        placeholder="#voyage, #pro..." 
+                        className="h-14 rounded-2xl border-white/10 bg-white/5 px-5 font-bold text-white/50 placeholder:text-white/20 focus:bg-white/10 focus-visible:ring-0 cursor-not-allowed"
+                      />
                     </div>
                   </div>
 
@@ -205,7 +266,7 @@ const TransactionModal: React.FC<Props> = ({
                     type="submit" 
                     className="h-16 w-full rounded-[24px] bg-white text-lg font-black text-black transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    Ajouter ma Vibe
+                    {initialData ? 'Enregistrer les modifications' : 'Ajouter ma Vibe'}
                   </Button>
                 </div>
               </form>

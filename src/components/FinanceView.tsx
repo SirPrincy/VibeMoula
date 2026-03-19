@@ -18,6 +18,7 @@ interface Props {
   onAddBudget: (budget: any) => void;
   onExport: () => void;
   dashboardCurrency: Currency;
+  onEditTransaction?: (tx: Transaction) => void;
 }
 
 const FinanceView: React.FC<Props> = ({
@@ -29,7 +30,8 @@ const FinanceView: React.FC<Props> = ({
   onAddCategory,
   onAddBudget,
   onExport,
-  dashboardCurrency
+  dashboardCurrency,
+  onEditTransaction
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'wallets' | 'budgets' | 'categories'>('wallets');
   const [showAddModal, setShowAddModal] = useState<string | null>(null);
@@ -199,7 +201,7 @@ const FinanceView: React.FC<Props> = ({
         </section>
       )}
 
-      <TransactionList transactions={transactions} wallets={wallets} categories={categories} />
+      <TransactionList transactions={transactions} wallets={wallets} categories={categories} onEditTransaction={onEditTransaction} />
 
       {/* Modals */}
       <AnimatePresence>

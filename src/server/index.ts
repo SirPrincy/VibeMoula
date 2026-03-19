@@ -163,6 +163,35 @@ app.post('/api/transactions', validate(schemas.TransactionSchema), async (req: R
   res.status(201).json({ ...req.body, id: transactionId });
 });
 
+app.put('/api/transactions/:id', validate(schemas.TransactionSchema), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const { 
+    description, amount, categoryId, category, subCategory, 
+    tags, type, walletId, fromWalletId, date, isReconciled, isDeleted 
+  } = req.body;
+  const tagsStr = tags ? JSON.stringify(tags) : null;
+  
+  await db.update(schema.transactions)
+    .set({ 
+      description: description as string, 
+      amount: Number(amount), 
+      categoryId: (categoryId as string) || null,
+      category: category as string, 
+      subCategory: (subCategory as string) || null, 
+      tags: tagsStr, 
+      type: type as "income" | "expense" | "transfer", 
+      walletId: walletId as string, 
+      fromWalletId: (fromWalletId as string) || null,
+      date: (date as string) || new Date().toISOString(),
+      isReconciled: !!isReconciled,
+      updatedAt: new Date().toISOString(),
+      isDeleted: !!isDeleted
+    })
+    .where(eq(schema.transactions.id, id));
+  
+  res.json({ ...req.body, id, updatedAt: new Date().toISOString() });
+});
+
 app.delete('/api/transactions/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;

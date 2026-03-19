@@ -39,6 +39,11 @@ export const financeApi = {
       updatedAt: new Date().toISOString(),
       isDeleted: false,
     }),
+  updateTransaction: (transaction: Transaction) =>
+    apiClient.put<Transaction>(`/transactions/${transaction.id}`, {
+      ...transaction,
+      updatedAt: new Date().toISOString(),
+    }),
   deleteTransaction: (id: string) => apiClient.delete(`/transactions/${id}`),
   clearTransactions: () => apiClient.delete('/transactions'),
 

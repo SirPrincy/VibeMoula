@@ -16,12 +16,14 @@ interface DashboardViewProps {
   transactions: Transaction[];
   wallets: Wallet[];
   currency: Currency;
+  onEditTransaction?: (tx: Transaction) => void;
 }
 
 const DashboardView: React.FC<DashboardViewProps> = ({ 
   transactions, 
   wallets,
-  currency 
+  currency,
+  onEditTransaction
 }) => {
   const totals = useMemo(() => {
     const balance = wallets.reduce((acc, w) => {
@@ -106,7 +108,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               <motion.div 
                 key={t.id} 
                 whileHover={{ x: 5 }}
-                className="transaction-item flex items-center gap-4 p-5 bg-card/40 border border-border rounded-[24px] backdrop-blur-sm shadow-subtle group transition-all hover:bg-card hover:border-accent/10"
+                onClick={() => onEditTransaction?.(t)}
+                className="transaction-item flex items-center gap-4 p-5 bg-card/40 border border-border rounded-[24px] backdrop-blur-sm shadow-subtle group transition-all hover:bg-card hover:border-accent/10 cursor-pointer"
               >
                 <div className={cn(
                   "icon-box p-3 rounded-2xl flex transition-all group-hover:scale-110",
