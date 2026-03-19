@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Download, X, Settings } from 'lucide-react';
 import TransactionList from './TransactionList';
-import type { Wallet, Transaction, Category, Budget, Currency } from '../types';
+import type { Wallet, Transaction, Category, Budget, Currency, RecurringTemplate } from '../types';
 import { SUPPORTED_CURRENCIES } from '../types';
 import { currencyService } from '../services/currencyService';
 import { cn } from '@/lib/utils';
@@ -13,9 +13,12 @@ interface Props {
   wallets: Wallet[];
   categories: Category[];
   budgets: Budget[];
+  recurring: RecurringTemplate[];
   onAddWallet: (wallet: any) => void;
   onAddCategory: (category: any) => void;
   onAddBudget: (budget: any) => void;
+  onAddRecurring: (recurring: any) => void;
+  onDeleteRecurring: (id: string) => void;
   onExport: () => void;
   dashboardCurrency: Currency;
   onEditTransaction?: (tx: Transaction) => void;
@@ -27,15 +30,18 @@ const FinanceView: React.FC<Props> = ({
   wallets,
   categories,
   budgets,
+  recurring,
   onAddWallet,
   onAddCategory,
   onAddBudget,
+  onAddRecurring,
+  onDeleteRecurring,
   onExport,
   dashboardCurrency,
   onEditTransaction,
   onEditWallet
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'wallets' | 'budgets' | 'categories'>('wallets');
+  const [activeSubTab, setActiveSubTab] = useState<'wallets' | 'budgets' | 'categories' | 'recurring'>('wallets');
   const [showAddModal, setShowAddModal] = useState<string | null>(null);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
   const [selectedWallets, setSelectedWallets] = useState<string[]>([]);
@@ -94,7 +100,7 @@ const FinanceView: React.FC<Props> = ({
 
       {/* Sub-Tabs */}
       <div className="flex gap-5 mb-[30px] border-b border-border pb-2.5">
-        {(['wallets', 'budgets', 'categories'] as const).map(tab => (
+        {(['wallets', 'budgets', 'categories', 'recurring'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -103,7 +109,7 @@ const FinanceView: React.FC<Props> = ({
               activeSubTab === tab ? "text-accent" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {tab === 'wallets' ? 'Comptes' : tab}
+            {tab === 'wallets' ? 'Comptes' : tab === 'recurring' ? 'Récurrents' : tab}
             {activeSubTab === tab && (
               <motion.div
                 layoutId="subtab"
@@ -260,6 +266,52 @@ const FinanceView: React.FC<Props> = ({
         </section>
       )}
 
+      {activeSubTab === 'recurring' && (
+        <section className="mb-10">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[1rem] font-bold">Paiements Récurrents</h3>
+            <button
+              onClick={() => { setShowAddModal('recurring'); }}
+              className="flex items-center gap-1 bg-accent text-background border-none rounded-full px-3 py-1.5 text-[0.75rem] font-bold cursor-pointer transition-transform active:scale-95"
+            >
+              <Plus size={14} /> Nouveau
+            </button>
+          </div>
+          <div className="grid gap-5">
+            {recurring.map(r => {
+              const category = categories.find(c => c.id === r.categoryId);
+              const wallet = wallets.find(w => w.id === r.walletId);
+              return (
+                <div key={r.id} className="bg-card/40 p-6 rounded-[24px] border border-border backdrop-blur-sm shadow-subtle flex justify-between items-center group">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{category?.icon || '🔄'}</span>
+                    <div>
+                      <span className="block font-black text-[1rem] tracking-tight">{r.description}</span>
+                      <span className="text-[0.8rem] font-medium text-muted-foreground">{category?.name || 'Inconnu'} • {r.frequency} • {wallet?.name || 'Inconnu'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-black text-lg text-foreground">
+                      {currencyService.format(r.amount, dashboardCurrency)}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce paiement récurrent ?")) {
+                          onDeleteRecurring(r.id);
+                        }
+                      }}
+                      className="p-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/10 rounded-full"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <TransactionList transactions={filteredTransactions} wallets={wallets} categories={categories} onEditTransaction={onEditTransaction} />
 
       {/* Modals */}
@@ -276,6 +328,9 @@ const FinanceView: React.FC<Props> = ({
         )}
         {showAddModal === 'budget' && (
           <BudgetAddModal onClose={() => setShowAddModal(null)} onAdd={onAddBudget} categories={categories} />
+        )}
+        {showAddModal === 'recurring' && (
+          <RecurringAddModal onClose={() => setShowAddModal(null)} onAdd={onAddRecurring} categories={categories} wallets={wallets} />
         )}
       </AnimatePresence>
     </motion.div>
@@ -362,6 +417,52 @@ const BudgetAddModal = ({ onClose, onAdd, categories }: any) => {
         </div>
         <Input label="Montant Mensuel" type="number" value={amount} onChange={(v: any) => setAmount(Number(v))} />
         <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">Définir</Button>
+      </form>
+    </ModalWrapper>
+  );
+};
+
+const RecurringAddModal = ({ onClose, onAdd, categories, wallets }: any) => {
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState(0);
+  const [catId, setCatId] = useState('');
+  const [walletId, setWalletId] = useState(wallets[0]?.id || '');
+  const [frequency, setFrequency] = useState('monthly');
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+
+  return (
+    <ModalWrapper title="Paiement Récurrent" onClose={onClose}>
+      <form onSubmit={(e) => { e.preventDefault(); onAdd({ description, amount, categoryId: catId, walletId, frequency, startDate: new Date(startDate).toISOString() }); onClose(); }} className="space-y-4">
+        <Input label="Description" value={description} onChange={setDescription} />
+        <Input label="Montant" type="number" value={amount} onChange={(v: any) => setAmount(Number(v))} />
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="space-y-1.5">
+            <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Catégorie</Label>
+            <select value={catId} onChange={e => setCatId(e.target.value)} className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50">
+              <option value="">Sélectionner</option>
+              {categories.map((c: any) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Portefeuille</Label>
+            <select value={walletId} onChange={e => setWalletId(e.target.value)} className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50">
+              {wallets.map((w: any) => <option key={w.id} value={w.id}>{w.icon} {w.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="space-y-1.5">
+            <Label className="text-[0.7rem] font-black uppercase text-muted-foreground">Fréquence</Label>
+            <select value={frequency} onChange={e => setFrequency(e.target.value)} className="w-full rounded-xl border border-border bg-muted/30 p-3 text-sm font-semibold outline-none focus:border-foreground/20 focus:bg-muted/50">
+              <option value="daily">Quotidien</option>
+              <option value="weekly">Hebdomadaire</option>
+              <option value="monthly">Mensuel</option>
+              <option value="yearly">Annuel</option>
+            </select>
+          </div>
+          <Input type="date" label="Date de début" value={startDate} onChange={setStartDate} />
+        </div>
+        <Button type="submit" className="w-full h-12 mt-5 rounded-xl bg-accent text-background font-black text-lg">Enregistrer</Button>
       </form>
     </ModalWrapper>
   );

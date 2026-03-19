@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { 
   useWallets, useTransactions, useSavings, useDebts, 
-  useCategories, useBudgets 
+  useCategories, useBudgets, useRecurring
 } from './queries/useFinanceQueries';
 import { statisticsService } from '../services/statisticsService';
 import { persistenceService } from '../services/persistenceService';
@@ -19,6 +19,7 @@ export const useFinance = () => {
   const { data: debts = [], addDebt, updateDebt, deleteDebt } = useDebts();
   const { data: categories = [], addCategory } = useCategories();
   const { data: budgets = [], addBudget } = useBudgets();
+  const { data: recurring = [], addRecurring, updateRecurring, deleteRecurring } = useRecurring();
 
   // Local state for settings (moved partially to persistenceService)
   const [dashboardCurrency, setDashboardCurrency] = useState(persistenceService.getCurrency);
@@ -46,6 +47,7 @@ export const useFinance = () => {
     debts,
     categories,
     budgets,
+    recurring,
     dashboardCurrency,
     setDashboardCurrency,
     totalIncome: stats.totalIncome,
@@ -58,6 +60,9 @@ export const useFinance = () => {
     updateWallet,
     addCategory,
     addBudget,
+    addRecurring,
+    updateRecurring,
+    deleteRecurring,
     addSavingsGoal: addSavings,
     updateSavingsGoal: updateSavings,
     deleteSavingsGoal: deleteSavings,

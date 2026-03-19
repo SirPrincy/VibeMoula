@@ -227,7 +227,48 @@ export const useRecurring = () => {
     addRecurringMutation.mutate({ ...data, id });
   };
 
-  return { ...query, addRecurring };
+  const updateRecurringMutation = useMutation({
+    mutationFn: financeApi.updateRecurring,
+    onMutate: async (updatedTemplate) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring'] });
+      const previous = queryClient.getQueryData<RecurringTemplate[]>(['recurring']);
+      queryClient.setQueryData<RecurringTemplate[]>(['recurring'], (old = []) => 
+        old.map(t => t.id === updatedTemplate.id ? { ...updatedTemplate, updatedAt: new Date().toISOString() } : t)
+      );
+      return { previous };
+    },
+    onError: (_err, _updated, context) => {
+      queryClient.setQueryData(['recurring'], context?.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring'] });
+    },
+  });
+
+  const deleteRecurringMutation = useMutation({
+    mutationFn: financeApi.deleteRecurring,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['recurring'] });
+      const previous = queryClient.getQueryData<RecurringTemplate[]>(['recurring']);
+      queryClient.setQueryData<RecurringTemplate[]>(['recurring'], (old = []) => 
+        old.filter(t => t.id !== id)
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['recurring'], context?.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring'] });
+    },
+  });
+
+  return { 
+    ...query, 
+    addRecurring,
+    updateRecurring: updateRecurringMutation.mutate,
+    deleteRecurring: deleteRecurringMutation.mutate
+  };
 };
 
 export const useBudgets = () => {

@@ -68,6 +68,7 @@ export const financeApi = {
       ...template,
       updatedAt: new Date().toISOString(),
     }),
+  deleteRecurring: (id: string) => apiClient.delete(`/recurring/${id}`),
 
   // Budgets
   getBudgets: () => apiClient.get<Budget[]>('/budgets'),

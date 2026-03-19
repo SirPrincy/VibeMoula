@@ -20,14 +20,18 @@ function App() {
     wallets,
     categories,
     budgets,
+    recurring,
     dashboardCurrency,
     setDashboardCurrency,
     addTransaction, 
     updateTransaction,
+    deleteTransaction,
     addWallet,
     updateWallet,
     addCategory,
     addBudget,
+    addRecurring,
+    deleteRecurring,
     exportData,
     resetData
   } = useFinance();
@@ -116,9 +120,12 @@ function App() {
                 wallets={wallets}
                 categories={categories}
                 budgets={budgets}
+                recurring={recurring}
                 onAddWallet={addWallet}
                 onAddCategory={addCategory}
                 onAddBudget={addBudget}
+                onAddRecurring={addRecurring}
+                onDeleteRecurring={deleteRecurring}
                 onExport={exportData}
                 dashboardCurrency={dashboardCurrency as Currency}
                 onEditTransaction={handleOpenTransactionModal}
@@ -152,6 +159,7 @@ function App() {
           isOpen={isModalOpen} 
           onClose={() => { setIsModalOpen(false); setEditingTransaction(null); }} 
           onSubmit={handleTransactionSubmit} 
+          onDelete={deleteTransaction}
           wallets={wallets}
           recentlyUsedCategoryIds={recentlyUsedCategoryIds}
           initialData={editingTransaction}

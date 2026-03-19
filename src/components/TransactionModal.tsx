@@ -18,6 +18,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateTransactionInput) => void;
+  onDelete?: (id: string) => void;
   wallets: Wallet[];
   recentlyUsedCategoryIds?: string[];
   initialData?: Transaction | null;
@@ -27,6 +28,7 @@ const TransactionModal: React.FC<Props> = ({
   isOpen, 
   onClose, 
   onSubmit, 
+  onDelete,
   wallets, 
   recentlyUsedCategoryIds = [],
   initialData
@@ -268,6 +270,21 @@ const TransactionModal: React.FC<Props> = ({
                   >
                     {initialData ? 'Enregistrer les modifications' : 'Ajouter ma Vibe'}
                   </Button>
+                  {initialData && onDelete && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette transaction ?")) {
+                          onDelete(initialData.id);
+                          onClose();
+                        }
+                      }}
+                      className="flex h-12 w-full items-center justify-center rounded-[24px] text-sm font-bold text-red-500 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                    >
+                      Supprimer la Vibe
+                    </Button>
+                  )}
                 </div>
               </form>
             </div>

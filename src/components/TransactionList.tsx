@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Settings } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import type { Transaction, Category, Wallet } from '../types';
 import { currencyService } from '../services/currencyService';
 import { cn } from '@/lib/utils';
@@ -57,14 +57,6 @@ const TransactionItem: React.FC<ItemProps> = ({ transaction, wallet, category, o
         )}>
           {isIncome ? '+' : '-'} {currencyService.format(Math.abs(transaction.amount), (wallet?.currency as any) || 'USD')}
         </div>
-        {onClick && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onClick(transaction); }}
-            className="flex items-center justify-center p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground transition-colors hover:bg-muted/50 opacity-0 group-hover:opacity-100 focus:opacity-100"
-          >
-            <Settings size={16} />
-          </button>
-        )}
       </div>
     </motion.div>
   );
